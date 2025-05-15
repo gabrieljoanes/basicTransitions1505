@@ -14,7 +14,7 @@ def get_transition_from_gpt(para_a, para_b, examples, client, model="gpt-4"):
         "Tu es un assistant de presse francophone. "
         "Ta tâche est d'insérer une transition brève et naturelle (5 mots maximum) "
         "entre deux paragraphes d'actualité régionale. "
-        "La transition doit être journalistique, fluide, neutre et ne pas répéter les débuts comme 'Par ailleurs'."
+        "La transition doit être journalistique, fluide, neutre et ne pas répéter les débuts comme 'Par ailleurs' ou parallèlement."
     )
 
     # Prepare messages for OpenAI chat completion
