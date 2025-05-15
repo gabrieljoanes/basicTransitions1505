@@ -55,12 +55,6 @@ def main():
             # ✅ Display title and blurb
             st.markdown("### 📰 Titre et chapeau")
             st.markdown(title_blurb)
-        else:
-            # fallback: raw display if structure is unexpected
-            st.markdown("### 📰 Titre et chapeau")
-            st.markdown(title_blurb)
-            st.markdown("&nbsp;\n&nbsp;\n&nbsp;\n&nbsp;\n&nbsp;\n&nbsp;", unsafe_allow_html=True)
-
 
             # ✅ Display full output with transitions
             show_output(rebuilt_text)
