@@ -4,7 +4,8 @@ import json
 
 def load_transitions(file_path="transitions.json"):
     """
-    Load a list of 5-word transition phrases from a JSON file.
+    Loads only the 'transition' strings from the JSON list of objects.
     """
     with open(file_path, "r", encoding="utf-8") as f:
-        return json.load(f)
+        data = json.load(f)
+    return [item["transition"] for item in data if "transition" in item]
