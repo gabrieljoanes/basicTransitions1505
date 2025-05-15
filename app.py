@@ -4,6 +4,7 @@ from utils.io import load_examples
 from utils.processing import get_transition_from_gpt
 from utils.display import layout_title_and_input, show_output, show_version
 from utils.version import compute_version_hash
+from utils.layout import rebuild_article_with_transitions  # ✅ New import
 
 def main():
     # ✅ Load OpenAI client from Streamlit secrets
@@ -16,7 +17,8 @@ def main():
         "utils/io.py",
         "utils/processing.py",
         "utils/display.py",
-        "utils/version.py"
+        "utils/version.py",
+        "utils/layout.py"  # ✅ Include new file in hash
     ])
 
     # ✅ UI input
@@ -40,16 +42,16 @@ def main():
             transition = get_transition_from_gpt(para_a, para_b, examples, client)
             generated_transitions.append(transition)
 
-        # ✅ Reconstruct final text
-        final_text = parts[0]
-        for t, next_part in zip(generated_transitions, parts[1:]):
-            final_text += f"{t} {next_part}"
-
-        # ✅ Show result and transitions
-        show_output(final_text)
-        st.markdown("### 🧩 Transitions générées :")
-        for i, t in enumerate(generated_transitions, 1):
-            st.markdown(f"{i}. _{t}_")
+        # ✅ Rebuild article using helper
+        rebuilt_text, error = rebuild_article_with_transitions(text_input, generated_transitions)
+        if error:
+            st.error(error)
+        else:
+            # ✅ Show final output and transitions
+            show_output(rebuilt_text)
+            st.markdown("### 🧩 Transitions générées :")
+            for i, t in enumerate(generated_transitions, 1):
+                st.markdown(f"{i}. _{t}_")
 
     show_version(VERSION)
 
