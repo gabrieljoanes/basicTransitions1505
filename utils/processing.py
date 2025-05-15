@@ -1,7 +1,9 @@
 # utils/processing.py
 
-import openai
+from openai import OpenAI
 import random
+
+client = OpenAI()  # This will automatically use the API key from environment or Streamlit secrets
 
 def get_transition_from_gpt(para_a, para_b, examples, model="gpt-4"):
     """
@@ -9,7 +11,6 @@ def get_transition_from_gpt(para_a, para_b, examples, model="gpt-4"):
     using GPT and few-shot examples from your dataset.
     """
 
-    # Use 3 random examples for few-shot prompting
     selected_examples = random.sample(examples, min(3, len(examples)))
 
     system_prompt = (
@@ -24,14 +25,12 @@ def get_transition_from_gpt(para_a, para_b, examples, model="gpt-4"):
         messages.append({"role": "user", "content": shot["input"]})
         messages.append({"role": "assistant", "content": shot["transition"]})
 
-    # Add the user's paragraph pair
     messages.append({
         "role": "user",
         "content": f"{para_a.strip()}\nTRANSITION\n{para_b.strip()}"
     })
 
-    # API call to GPT
-    response = openai.ChatCompletion.create(
+    response = client.chat.completions.create(
         model=model,
         messages=messages,
         temperature=0.5,
