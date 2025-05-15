@@ -53,27 +53,27 @@ def main():
             st.error(error)
         else:
             # ✅ Display title and chapeau with required spacing
-if "Titre :" in title_blurb and "Chapeau :" in title_blurb:
-    lines = title_blurb.split("\n")
-    title_line = next((l for l in lines if l.startswith("Titre :")), "")
-    chapo_line = next((l for l in lines if l.startswith("Chapeau :")), "")
+        if "Titre :" in title_blurb and "Chapeau :" in title_blurb:
+            lines = title_blurb.split("\n")
+            title_line = next((l for l in lines if l.startswith("Titre :")), "")
+            chapo_line = next((l for l in lines if l.startswith("Chapeau :")), "")
     
-    st.markdown("### 📰 Titre")
-    st.markdown(f"**{title_line.replace('Titre :', '').strip()}**")
+            st.markdown("### 📰 Titre")
+            st.markdown(f"**{title_line.replace('Titre :', '').strip()}**")
 
-    # 3 blank lines between title and chapeau
-    st.markdown("&nbsp;\n&nbsp;\n&nbsp;", unsafe_allow_html=True)
+            # 3 blank lines between title and chapeau
+            st.markdown("&nbsp;\n&nbsp;\n&nbsp;", unsafe_allow_html=True)
 
-    st.markdown("### ✏️ Chapeau")
-    st.markdown(chapo_line.replace("Chapeau :", "").strip())
+            st.markdown("### ✏️ Chapeau")
+            st.markdown(chapo_line.replace("Chapeau :", "").strip())
 
-    # 6 blank lines after the block
-    st.markdown("&nbsp;\n&nbsp;\n&nbsp;\n&nbsp;\n&nbsp;\n&nbsp;", unsafe_allow_html=True)
-else:
-    # fallback: raw display if structure is unexpected
-    st.markdown("### 📰 Titre et chapeau")
-    st.markdown(title_blurb)
-    st.markdown("&nbsp;\n&nbsp;\n&nbsp;\n&nbsp;\n&nbsp;\n&nbsp;", unsafe_allow_html=True)
+            # 6 blank lines after the block
+            st.markdown("&nbsp;\n&nbsp;\n&nbsp;\n&nbsp;\n&nbsp;\n&nbsp;", unsafe_allow_html=True)
+        else:
+            # fallback: raw display if structure is unexpected
+            st.markdown("### 📰 Titre et chapeau")
+            st.markdown(title_blurb)
+            st.markdown("&nbsp;\n&nbsp;\n&nbsp;\n&nbsp;\n&nbsp;\n&nbsp;", unsafe_allow_html=True)
 
 
             # ✅ Display full output with transitions
