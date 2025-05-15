@@ -15,6 +15,7 @@ def get_transition_from_gpt(para_a, para_b, examples, client, model="gpt-4"):
         "Ta tâche est d'insérer une transition brève et naturelle (5 mots maximum) "
         "entre deux paragraphes d'actualité régionale. "
         "La transition doit être journalistique, fluide, neutre et ne pas répéter les débuts comme 'Par ailleurs' ou parallèlement ou sujet."
+        "the final TRANSITION in the article must be a proper concluding transition that clearly signals the end of the article. For that final transition only, choose from the following list of expressions: Enfin, Et pour finir, Pour terminer, Pour finir, En guise de conclusion, En conclusion, En guise de mot de la fin, Pour clore cette revue, Pour conclure cette sélection, Dernier point à noter, Pour refermer ce tour d’horizon. These closing transitions should only appear once and exclusively as the last transition in the article."
     )
 
     # Prepare messages for OpenAI chat completion
