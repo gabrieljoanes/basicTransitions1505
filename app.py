@@ -1,3 +1,10 @@
+# app.py
+from openai import OpenAI
+
+# Load your secret key from Streamlit (must be in the secrets panel!)
+client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+
+
 import streamlit as st
 from utils.io import load_examples
 from utils.processing import get_transition_from_gpt
