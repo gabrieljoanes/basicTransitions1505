@@ -17,7 +17,7 @@ Règles :
 2. Chapeau :
    - Résume quoi, qui, où, quand.
    - Mentionner la date et le lieu s’ils sont dans le paragraphe.
-   - Max. 2 phrases, ton neutre.
+   - Max. 1 phrases, ton neutre.
 
 Utilise uniquement le contenu du paragraphe fourni, sans rien ajouter.
 
