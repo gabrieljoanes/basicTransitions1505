@@ -1,16 +1,14 @@
 import streamlit as st
-from utils.io import load_transitions
-from utils.processing import generate_unique_transitions
+from utils.io import load_examples
+from utils.processing import get_transition_from_gpt
 from utils.display import (
     layout_title_and_input,
     show_output,
-    show_warning_or_error,
     show_version
 )
 from utils.version import compute_version_hash
 
 def main():
-    # Versioning
     VERSION = compute_version_hash([
         "app.py",
         "transitions.json",
@@ -20,33 +18,34 @@ def main():
         "utils/version.py"
     ])
 
-    # UI input
     text_input = layout_title_and_input()
 
     if st.button("✨ Générer les transitions"):
         if "TRANSITION" not in text_input:
-            show_warning_or_error(missing=True)
-        else:
-            transitions = load_transitions()
-            needed = text_input.count("TRANSITION")
-            replacements = generate_unique_transitions(transitions, needed)
+            st.warning("Aucune balise `TRANSITION` trouvée.")
+            return
 
-            if len(replacements) < needed:
-                show_warning_or_error(not_enough=True)
-            else:
-                result = text_input
-                for phrase in replacements:
-                    result = result.replace("TRANSITION", phrase, 1)
-                show_output(result)
+        examples = load_examples()
+        parts = text_input.split("TRANSITION")
+        pairs = list(zip(parts[:-1], parts[1:]))
 
-                # Show selected transitions
-                st.markdown("### 🧩 Transitions utilisées :")
-                for i, t in enumerate(replacements, 1):
-                    st.markdown(f"{i}. _{t}_")
+        generated_transitions = []
+        for para_a, para_b in pairs:
+            transition = get_transition_from_gpt(para_a, para_b, examples)
+            generated_transitions.append(transition)
 
-    # Show version info
+        # Rebuild final text
+        final_text = parts[0]
+        for t, next_part in zip(generated_transitions, parts[1:]):
+            final_text += f"{t} {next_part}"
+
+        # Output
+        show_output(final_text)
+        st.markdown("### 🧩 Transitions générées :")
+        for i, t in enumerate(generated_transitions, 1):
+            st.markdown(f"{i}. _{t}_")
+
     show_version(VERSION)
 
-# 🔁 Run the app
 if __name__ == "__main__":
     main()
