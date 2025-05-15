@@ -2,10 +2,9 @@
 
 import json
 
-def load_transitions(file_path="transitions.json"):
+def load_examples(file_path="transitions.json"):
     """
-    Loads only the 'transition' strings from the JSON list of objects.
+    Load full transition dataset: list of {input, transition} pairs.
     """
     with open(file_path, "r", encoding="utf-8") as f:
-        data = json.load(f)
-    return [item["transition"] for item in data if "transition" in item]
+        return json.load(f)
