@@ -1,3 +1,4 @@
+
 [
   {
     "input": "Un homme a été tué par balles dans une épicerie à Valréas, un événement tragique qui a choqué cette petite commune.\nTRANSITION\nDeux girafes venues de Suède arriveront au zoo des Sables-d'Olonne pour rejoindre le programme d'élevage européen.",
@@ -15,8 +16,14 @@
     "input": "La Fête de l’asperge à Alzonne a permis de découvrir des produits originaux malgré une météo défavorable.\nTRANSITION\nLa situation hydrologique s’améliore dans la région de la Ganguise et de Montbel, avec des réserves d’eau presque pleines.",
     "transition": "Dans un autre registre,"
   },
-
-
+  {
+    "input": "Les réserves d’eau de la Ganguise et de Montbel ont atteint 90 % de remplissage, rassurant les agriculteurs.\nTRANSITION\nDes dizaines d’écoles de danse présenteront 136 chorégraphies à Castelnaudary lors d’un concours national.",
+    "transition": "Prenons la direction de la région de [lieu ou territoire], où"
+  },
+  {
+    "input": "Les préparatifs sont en cours pour un concours de danse accueillant plus de 30 écoles à Castelnaudary.\nTRANSITION\nUn jury évaluera les prestations selon la progression des élèves, dans un esprit bienveillant et festif.",
+    "transition": "Enfin, place à la [édition] du concours chorégraphique de [nom de l'événement], qui"
+  },
   {
     "input": "Une femme de 22 ans s’est immolée à Nœux-les-Mines. Elle a été transportée en urgence au CHR de Lille.\nTRANSITION\nUne vente aux enchères de sacs de luxe aura lieu au palais des congrès du Touquet-Paris-Plage le 10 mai.",
     "transition": "Dans un tout autre registre,"
@@ -69,7 +76,10 @@
     "input": "Les Fêtes Jeanne d'Arc de Rouen auront lieu du 29 au 31 mai.\nTRANSITION\nUne nouvelle artiste exposera ses créations photo à Elbeuf-sur-Seine à partir du 10 mai.",
     "transition": "Sachez pour finir que"
   },
-
+  {
+    "input": "La maison des jeunes de Longperrier ouvrira enfin ses portes début juin.\nTRANSITION\nDes arrêtés interdisent l’alcool sur la voie publique et les rassemblements nocturnes à Lizy-sur-Ourcq.",
+    "transition": "À présent, dans la commune de [XXX], il est à signaler que"
+  },
   {
     "input": "Des restrictions sont en place à Lizy-sur-Ourcq pour limiter les regroupements publics.\nTRANSITION\nÀ Ville-Saint-Jacques, de jeunes porte-drapeaux se préparent à représenter la commune.",
     "transition": "D'autre part, dans un tout autre domaine,"
@@ -122,8 +132,14 @@
     "input": "Les Apéros Quai reviennent à Castelnaudary avec musique, produits locaux et ateliers au bord du canal.\nTRANSITION\nLa Fête de l'asperge à Alzonne a permis de découvrir des produits régionaux, malgré la pluie.",
     "transition": "Dans un autre registre,"
   },
-
-
+  {
+    "input": "Des asperges en glace, smoothie ou confiture ont été proposées lors de la fête à Alzonne.\nTRANSITION\nLa situation hydrologique s’améliore dans la région de la Ganguise et de Montbel, après deux années difficiles.",
+    "transition": "Prenons la direction de la région de [lieu ou territoire], où"
+  },
+  {
+    "input": "Les réserves d’eau de la Ganguise sont désormais pleines à 90 %, rassurant les agriculteurs.\nTRANSITION\nPlus de 30 écoles de danse participeront à un concours chorégraphique à Castelnaudary.",
+    "transition": "Enfin, place à la [édition] du concours chorégraphique de [nom de l'événement], qui"
+  },
   {
     "input": "Caen accueillera plus de 100 000 personnes pour une parade opératique spectaculaire le 9 mai.\nTRANSITION\nLe réseau de transports Twisto sera gratuit ce jour-là pour faciliter les déplacements des habitants.",
     "transition": "Dans le reste de l'actualité,"
@@ -132,13 +148,22 @@
     "input": "Le SM Caen a été relégué en National après une saison difficile. Le club vise une remontée rapide en Ligue 2.\nTRANSITION\nDes ateliers du bac ont été organisés à Vire Normandie pour aider les lycéens à mieux lire à voix haute.",
     "transition": "Sachez enfin que"
   },
-
-
+  {
+    "input": "Le Salon du flipper à Jarnac a rassemblé 150 passionnés autour de machines rétro et modernes.\nTRANSITION\nDes bénévoles ont restauré un lavoir envahi par la végétation à Val des Vignes.",
+    "transition": "Poursuivons notre voyage dans le temps à [XXX], où"
+  },
+  {
+    "input": "Le lavoir de Val des Vignes a retrouvé son éclat grâce à l’aide des habitants et de la mairie.\nTRANSITION\nÀ Soyaux, plusieurs expositions et ateliers sont proposés dans le cadre du programme culturel municipal.",
+    "transition": "Prenons maintenant la direction de [XXX], où"
+  },
   {
     "input": "Des activités culturelles et créatives sont prévues à Soyaux jusqu'à l'été.\nTRANSITION\nL'agence Charentes in Flow lance une campagne de financement participatif pour promouvoir le tourisme régional.",
     "transition": "Enfin, sachez que"
   },
-
+  {
+    "input": "Un mur de protection contre la submersion marine est en construction à La Couarde-sur-Mer.\nTRANSITION\nUn championnat de natation artistique a rassemblé de jeunes athlètes à La Rochelle.",
+    "transition": "Parlons à présent d'une initiative sportive solidaire, celle de [XXX], qui"
+  },
   {
     "input": "Yoann Marchadier et son association Timéodyssée réalisent un parcours à vélo pour sensibiliser au cancer pédiatrique.\nTRANSITION\nLe week-end du 1er mai, l'île de Ré a connu une forte affluence touristique.",
     "transition": "Par ailleurs, nous vous informons que"
@@ -147,7 +172,10 @@
     "input": "Plus de 53 000 véhicules ont franchi le pont vers l'île de Ré pendant le week-end prolongé.\nTRANSITION\nDes contrôles routiers ont eu lieu le 1er mai, ciblant camions et motards en infraction.",
     "transition": "Enfin, signalons que"
   },
-
+  {
+    "input": "La SPA de Saint-Brieuc cherche des fonds pour construire un nouveau refuge à moins de 20 km de la ville.\nTRANSITION\nJean-Luc Lemoine présentera son spectacle humoristique à Pléneuf-Val-André le 10 mai.",
+    "transition": "Rendons-nous à [XXX], qui"
+  },
   {
     "input": "Jean-Luc Lemoine abordera avec humour les absurdités de notre époque dans son spectacle \"Liquidation\".\nTRANSITION\nDes travaux sur la RN12 provoquent des bouchons entre Guingamp et Grâces.",
     "transition": "Nous enchaînons avec quelques perturbations sur les routes :"
@@ -200,8 +228,14 @@
     "input": "Une tentative d’arnaque a été signalée à Maen Roch par une fausse employée municipale.\nTRANSITION\nPlusieurs enseignes de vêtements ont fermé leurs portes à Vitré dans un contexte de crise du prêt-à-porter.",
     "transition": "Signalons à présent que"
   },
-
-
+  {
+    "input": "Un obus de la Seconde Guerre mondiale a été neutralisé sur une plage de Saint-Malo.\nTRANSITION\nDes habitants de Saint-Sauveur-des-Landes ont observé un phénomène rare, une « foudre en boule ».",
+    "transition": "Direction à présent [XXX], pour vous informer que"
+  },
+  {
+    "input": "Un phénomène lumineux rare a été aperçu dans le ciel de Saint-Sauveur-des-Landes.\nTRANSITION\nMaen Roch se prépare à commémorer la Résistance avec des expositions et balades historiques.",
+    "transition": "Enfin, retournons à [XXX], où"
+  },
   {
     "input": "Une fresque lumineuse habillera la façade du musée du Textile à Cholet lors de la Nuit des musées.\nTRANSITION\nLa ville de Saumur cherche à réduire ses déchets grâce à un nouveau contrat de gestion.",
     "transition": "Nous apprenons d'autre part que"
@@ -254,7 +288,10 @@
     "input": "L’USAP affrontera le Stade Français pour un match décisif en Top 14.\nTRANSITION\nPerpignan accueillera le spectacle mécanique \"The Whale Street\" lors du Festival de l’eau.",
     "transition": "Dans l'actualité également,"
   },
-
+  {
+    "input": "Le réaménagement du front de mer à Canet-en-Roussillon a été présenté au public avec une nouvelle promenade piétonne.\nTRANSITION\nLe ministre Bruno Retailleau est attendu à Rouen pour une cérémonie républicaine.",
+    "transition": "Enfin, direction [XXX] pour vous informer que"
+  },
   {
     "input": "Bruno Retailleau se rendra à Rouen le 6 mai pour une cérémonie en hommage à la synagogue incendiée.\nTRANSITION\nTrois braqueurs ont volé la caisse et des cigarettes dans un bar-tabac du quartier des Hauts-de-Rouen.",
     "transition": "On vous informe d'autre part que"
@@ -271,7 +308,10 @@
     "input": "Villages Nature Paris prévoit d’ajouter une nouvelle rivière sauvage et divers aménagements d’ici 2027.\nTRANSITION\nUn World Cleanup Day a réuni habitants de Lagny-sur-Marne et de Sainte-Agathe-des-Monts pour nettoyer les rues.",
     "transition": "Dans l'actualité judiciaire, souvenez-vous que"
   },
-
+  {
+    "input": "Le poste de police de la gare de Melun affiche une baisse des infractions depuis son ouverture.\nTRANSITION\nDes animations de printemps sont prévues sur les marchés de La Ferté-sous-Jouarre les 23 et 25 mai.",
+    "transition": "Enfin, prenons la direction de [XXX], qui"
+  },
   {
     "input": "Le Bressuire Tattoo Show rassemblera 110 tatoueurs au Bocapole les 10 et 11 mai.\nTRANSITION\nLe Niort Rugby Club s’incline face à Rennes mais vise encore la montée en Nationale.",
     "transition": "Dans un autre registre,"
@@ -284,7 +324,10 @@
     "input": "Un éleveur de Fontarnault est toujours porté disparu malgré les recherches.\nTRANSITION\n",
     "transition": "Enfin"
   },
-
+  {
+    "input": "50 collèges de la Somme vont installer des distributeurs de protections périodiques en accès libre.\nTRANSITION\nDes démarchages abusifs ont été signalés à Amiens concernant la rénovation énergétique.",
+    "transition": "Prenons la direction de [XXX], qui"
+  },
   {
     "input": "Brailly-Cornehotte installe des feux comportementaux pour lutter contre les excès de vitesse.\nTRANSITION\nLa Gapennoise du 1er mai a réuni plus de 650 sportifs à Gapennes.",
     "transition": "Dans l'actualité sportive,"
@@ -293,7 +336,10 @@
     "input": "Des migrants ont été secourus dans la baie de Somme alors qu’ils tentaient de traverser la Manche.\nTRANSITION\n",
     "transition": "Enfin"
   },
- 
+  {
+    "input": "Une campagne de dons vise à restaurer l’horloge murale de l'institution Sainte-Marie à La Seyne-sur-Mer.\nTRANSITION\nUn adolescent de Montauroux est recherché depuis le 5 avril, sa plaque ayant été repérée en Espagne.",
+    "transition": "Prenons la direction de [XXX], où"
+  },
   {
     "input": "Des habitants de Gassin organisent une pétanque caritative pour soutenir une petite fille malade.\nTRANSITION\nL’église de Saint-Aygulf a été cambriolée dans la nuit du 4 au 5 mai.",
     "transition": "Par ailleurs, nous apprenons que"
@@ -330,12 +376,18 @@
     "input": "L’AS Trouville-Deauville fusionne avec l’AS Villers pour former un nouveau club de football.\nTRANSITION\n",
     "transition": "Enfin, côté sport,"
   },
-
+  {
+    "input": "Le château de Saveilles sera ouvert au public en juin dans le cadre des Rendez-vous aux jardins.\nTRANSITION\nLa Fête du pain de Châteaubernard est annulée en raison du retard sur la restauration du four à pain.",
+    "transition": "Intéressons-nous à présent à [XXX], qui"
+  },
   {
     "input": "La maison-atelier de l'artiste Catherine Chabert à Cognac est un musée vivant consacré à la féminité.\nTRANSITION\nUn vide-greniers à Aunac organisé par l’association des parents d’élèves a rencontré un franc succès.",
     "transition": "Enfin, dans l'actualité également"
   },
-
+  {
+    "input": "Antoine Albeau remporte son 27e titre mondial en planche à voile à La Palme.\nTRANSITION\nUn homme a été retrouvé mort sur la plage de La Rochelle, une enquête est ouverte.",
+    "transition": "Restons à [XXX], où"
+  },
   {
     "input": "Le paulownia de la place de la Fourche à La Rochelle est sauvé grâce à des étais et un financement.\nTRANSITION\nChâtelaillon-Plage équipe sa police municipale de trottinettes électriques tout terrain pour les patrouilles.",
     "transition": "Pour finir, prenons la direction de [XXX], où"
@@ -344,12 +396,18 @@
     "input": "Une exposition de dessins au café de Sophia Vesna est à découvrir à la Brûlerie de Bernay jusqu’au 14 juin.\nTRANSITION\nLa Ville de Vernon lance Les Tablées de Vernon, un événement festif pour favoriser le vivre-ensemble.",
     "transition": "Dans le domaine culturel,"
   },
-
+  {
+    "input": "Le film 'La Venue de l’avenir' de Cédric Klapisch a été tourné à Giverny et sélectionné à Cannes.\nTRANSITION\nÀ Gisors, le skatepark laisse place à un nouveau parking de 28 places, prévu pour Urban Day.",
+    "transition": "Du côté de [XXX],"
+  },
   {
     "input": "Une Fête de la diversité se tiendra à Saint-André-de-l’Eure le 29 juin, avec plats du monde entier.\nTRANSITION\n",
     "transition": "Enfin, dans l'actualité également,"
   },
-
+  {
+    "input": "À Reims, un ballon stratosphérique avec caméras a été envoyé à 36 km d'altitude pour photographier la courbure de la Terre.\nTRANSITION\nSteeve Grand Sire, passionné de Lego, reproduit les monuments de Reims en briques miniatures.",
+    "transition": "Restons à [XXX], où"
+  },
   {
     "input": "Le musée de la Reddition à Reims fermera pour rénovation, avec réouverture prévue au printemps 2026.\nTRANSITION\nUn incendie a éclaté dans la zone industrielle Farman à Reims, touchant des bâtiments abandonnés.",
     "transition": "Enfin, dans l'actualité également"
@@ -382,7 +440,10 @@
     "input": "À Montpellier, un homme transportait illégalement 456 bonbonnes de protoxyde d’azote.\nTRANSITION\nUn grave accident entre une voiture et une moto a fait plusieurs blessés à Cazouls-d’Hérault.",
     "transition": "Dans l'actualité également, sachez que"
   },
-
+  {
+    "input": "Le festival La Grande Parade Métèque revient à Montpellier du 14 au 17 mai.\nTRANSITION\nLe gala de patinage Végapolis mettra en scène les meilleurs talents régionaux le 17 mai.",
+    "transition": "Enfin, direction [XXX] qui"
+  },
   {
     "input": "Bruno Retailleau inaugure une vedette contre le narcotrafic à Quiberon.\nTRANSITION\nLe FC Lorient remporte la Ligue 2 avec une victoire 5-1 contre Martigues.",
     "transition": "Dans un tout autre registre, on apprend que"
@@ -399,7 +460,10 @@
     "input": "Un membre d’équipage décède à bord d’un ferry à Calais.\nTRANSITION\nLe Jeu des 1 000 € sera enregistré au Touquet-Paris-Plage le 13 mai.",
     "transition": "Enfin, à vos agendas !"
   },
-
+  {
+    "input": "Hendaye inaugure sa nouvelle place de la République, piétonne et végétalisée.\nTRANSITION\nLes Hazpandars remportent leur premier match de phase finale contre Cahors.",
+    "transition": "Allons maintenant faire un tour du côté de [XXX]."
+  },
   {
     "input": "Jean-François Ramos, figure associative d’Anglet, est décédé à 76 ans.\nTRANSITION\nUn concert caritatif aura lieu à l’hôpital de Bayonne pour améliorer les soins.",
     "transition": "Enfin, à vos agendas !"
