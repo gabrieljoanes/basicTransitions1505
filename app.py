@@ -1,27 +1,4 @@
-import streamlit as st
-from utils.io import load_transitions
-from utils.processing import generate_unique_transitions
-from utils.display import (
-    layout_title_and_input,
-    show_output,
-    show_warning_or_error,
-    show_version
-)
-from utils.version import compute_version_hash
-
-# Compute version hash based on key files
-VERSION = compute_version_hash([
-    "app.py",
-    "transitions.json",
-    "utils/io.py",
-    "utils/processing.py",
-    "utils/display.py",
-    "utils/version.py"
-])
-
-# UI input
-text_input = layout_title_and_input()
-
+# ...
 if st.button("✨ Générer les transitions"):
     if "TRANSITION" not in text_input:
         show_warning_or_error(missing=True)
@@ -38,5 +15,7 @@ if st.button("✨ Générer les transitions"):
                 result = result.replace("TRANSITION", phrase, 1)
             show_output(result)
 
-# Show version hash at the bottom
-show_version(VERSION)
+            # 🔽 List selected transitions
+            st.markdown("### 🧩 Transitions utilisées :")
+            for i, t in enumerate(replacements, 1):
+                st.markdown(f"{i}. _{t}_")
