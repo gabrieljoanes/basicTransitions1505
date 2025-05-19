@@ -6,12 +6,13 @@ from utils.layout import rebuild_article_with_transitions
 from utils.display import layout_title_and_input, show_output, show_version
 from utils.version import compute_version_hash
 from utils.title_blurb import generate_title_and_blurb
+from utils.logger import save_output_to_file  # ✅ New import
 
 def main():
     # ✅ Initialize OpenAI client
     client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
-    # ✅ Compute version hash for debug and traceability
+    # ✅ Compute version hash for traceability
     VERSION = compute_version_hash([
         "app.py",
         "transitions.json",
@@ -20,7 +21,8 @@ def main():
         "utils/layout.py",
         "utils/display.py",
         "utils/version.py",
-        "utils/title_blurb.py"
+        "utils/title_blurb.py",
+        "utils/logger.py"  # ✅ Include logger for version hash
     ])
 
     # ✅ Display input UI
@@ -34,7 +36,7 @@ def main():
         # ✅ Load few-shot examples
         examples = load_examples()
 
-        # ✅ Split input into paragraphs and transition pairs
+        # ✅ Split input into paragraph pairs
         parts = text_input.split("TRANSITION")
         pairs = list(zip(parts[:-1], parts[1:]))
 
@@ -47,44 +49,49 @@ def main():
             transition = get_transition_from_gpt(para_a, para_b, examples, client)
             generated_transitions.append(transition)
 
-        # ✅ Rebuild the final article with transitions inserted
+        # ✅ Rebuild the full article
         rebuilt_text, error = rebuild_article_with_transitions(text_input, generated_transitions)
         if error:
             st.error(error)
         else:
-            # ✅ Nicely render Titre and Chapeau with required spacing
+            # ✅ Extract and show title & chapeau
             if "Titre :" in title_blurb and "Chapeau :" in title_blurb:
                 lines = title_blurb.split("\n")
                 title_line = next((l for l in lines if l.startswith("Titre :")), "")
                 chapo_line = next((l for l in lines if l.startswith("Chapeau :")), "")
+                title_text = title_line.replace("Titre :", "").strip()
+                chapo_text = chapo_line.replace("Chapeau :", "").strip()
 
                 st.markdown("### 📰 Titre")
-                st.markdown(f"**{title_line.replace('Titre :', '').strip()}**")
+                st.markdown(f"**{title_text}**")
 
-                # 3 blank lines between title and chapeau
                 st.markdown("&nbsp;\n&nbsp;\n&nbsp;", unsafe_allow_html=True)
 
                 st.markdown("### ✏️ Chapeau")
-                st.markdown(chapo_line.replace("Chapeau :", "").strip())
+                st.markdown(chapo_text)
 
-                # 6 blank lines after the title/chapeau block
-                st.markdown("&nbsp;\n&nbsp;\n&nbsp;\n&nbsp;\n&nbsp;\n&nbsp;", unsafe_allow_html=True)
+                st.markdown("&nbsp;\n" * 6, unsafe_allow_html=True)
             else:
-                # Fallback if format is unexpected
+                title_text = "Titre non défini"
+                chapo_text = "Chapeau non défini"
                 st.markdown("### 📰 Titre et chapeau")
                 st.markdown(title_blurb)
-                st.markdown("&nbsp;\n&nbsp;\n&nbsp;\n&nbsp;\n&nbsp;\n&nbsp;", unsafe_allow_html=True)
+                st.markdown("&nbsp;\n" * 6, unsafe_allow_html=True)
 
-            # ✅ Display full output article with transitions
+            # ✅ Display full article
             st.markdown("### 🧾 Article reconstruit")
             show_output(rebuilt_text)
 
-            # ✅ Display generated transitions list
+            # ✅ Display transitions
             st.markdown("### 🧩 Transitions générées")
             for i, t in enumerate(generated_transitions, 1):
                 st.markdown(f"{i}. _{t}_")
 
-    # ✅ Always show version
+            # ✅ Save output to file
+            filepath = save_output_to_file(title_text, chapo_text, rebuilt_text, generated_transitions)
+            st.success(f"✅ L'article a été sauvegardé dans `{filepath}`")
+
+    # ✅ Always display version hash
     show_version(VERSION)
 
 if __name__ == "__main__":
