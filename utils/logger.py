@@ -4,9 +4,9 @@ from msal import ConfidentialClientApplication
 import requests
 
 # Replace these with your actual Azure credentials
-CLIENT_ID = "your-client-id-here"
-TENANT_ID = "your-tenant-id-here"
-CLIENT_SECRET = "your-client-secret-here"
+CLIENT_ID = "98f784a9-5e71-4e57-9543-a83bc1fec732"
+TENANT_ID = "0b89b039-029d-4a76-a420-14aa6287d930"
+CLIENT_SECRET = "hmA8Q~g5ZshIHFzpAoZv.HlALN6tOx199wpSFciU"
 
 # Microsoft Graph API scope
 SCOPES = ["https://graph.microsoft.com/.default"]
