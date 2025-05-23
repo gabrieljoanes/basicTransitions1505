@@ -6,13 +6,11 @@ from utils.layout import rebuild_article_with_transitions
 from utils.display import layout_title_and_input, show_output, show_version
 from utils.version import compute_version_hash
 from utils.title_blurb import generate_title_and_blurb
-from utils.logger import save_output_to_file  # ✅ New import
+from utils.logger import save_output_to_file, logger  # Added logger import
 
 def main():
-    # ✅ Initialize OpenAI client
-    client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
-    # ✅ Compute version hash for traceability
+    # Compute version hash for traceability
     VERSION = compute_version_hash([
         "app.py",
         "transitions.json",
@@ -22,10 +20,10 @@ def main():
         "utils/display.py",
         "utils/version.py",
         "utils/title_blurb.py",
-        "utils/logger.py"  # ✅ Include logger for version hash
+        "utils/logger.py"
     ])
 
-    # ✅ Display input UI
+    # Display input UI
     text_input = layout_title_and_input()
 
     if st.button("✨ Générer les transitions"):
@@ -33,28 +31,34 @@ def main():
             st.warning("Aucune balise `TRANSITION` trouvée.")
             return
 
-        # ✅ Load few-shot examples
-        examples = load_examples()
+        try:
+            # Load few-shot examples
+            examples = load_examples()
+            logger.info("Successfully loaded examples")
 
-        # ✅ Split input into paragraph pairs
-        parts = text_input.split("TRANSITION")
-        pairs = list(zip(parts[:-1], parts[1:]))
+            # Split input into paragraph pairs
+            parts = text_input.split("TRANSITION")
+            pairs = list(zip(parts[:-1], parts[1:]))
+            logger.info(f"Processing {len(pairs)} paragraph pairs")
 
-        # ✅ Generate title and blurb from the first paragraph
-        title_blurb = generate_title_and_blurb(parts[0], client)
+            # Generate title and blurb from the first paragraph
+            title_blurb = generate_title_and_blurb(parts[0])
+            logger.info("Generated title and blurb")
 
-        # ✅ Generate transitions for each paragraph pair
-        generated_transitions = []
-        for para_a, para_b in pairs:
-            transition = get_transition_from_gpt(para_a, para_b, examples, client)
-            generated_transitions.append(transition)
+            # Generate transitions for each paragraph pair
+            generated_transitions = []
+            for i, (para_a, para_b) in enumerate(pairs, 1):
+                transition = get_transition_from_gpt(para_a, para_b, examples)
+                generated_transitions.append(transition)
+                logger.info(f"Generated transition {i}/{len(pairs)}")
+            # Rebuild the full article
+            rebuilt_text, error = rebuild_article_with_transitions(text_input, generated_transitions)
+            if error:
+                logger.error(f"Error rebuilding article: {error}")
+                st.error(error)
+                return
 
-        # ✅ Rebuild the full article
-        rebuilt_text, error = rebuild_article_with_transitions(text_input, generated_transitions)
-        if error:
-            st.error(error)
-        else:
-            # ✅ Extract and show title & chapeau
+            # Extract and show title & chapeau
             if "Titre :" in title_blurb and "Chapeau :" in title_blurb:
                 lines = title_blurb.split("\n")
                 title_line = next((l for l in lines if l.startswith("Titre :")), "")
@@ -78,20 +82,38 @@ def main():
                 st.markdown(title_blurb)
                 st.markdown("&nbsp;\n" * 6, unsafe_allow_html=True)
 
-            # ✅ Display full article
+            # Display full article
             st.markdown("### 🧾 Article reconstruit")
             show_output(rebuilt_text)
 
-            # ✅ Display transitions
+            # Display transitions
             st.markdown("### 🧩 Transitions générées")
             for i, t in enumerate(generated_transitions, 1):
                 st.markdown(f"{i}. _{t}_")
 
-            # ✅ Save output to file
+            # Save output to file and upload to GoogleDrive
             filepath = save_output_to_file(title_text, chapo_text, rebuilt_text, generated_transitions)
-            st.success(f"✅ L'article a été sauvegardé dans `{filepath}`")
+            if filepath:
+                print(filepath, '🤔🤔🤔')
+                st.success(f"✅ L'article a été sauvegardé dans `{filepath}` et uploadé sur GoogleDrive")
+                logger.info(f"Successfully saved and uploaded article to {filepath}")
+                
+                # Add Google Drive folder link
+                st.markdown("### 📁 Accès aux fichiers")
+                st.markdown(f"""
+                Vous pouvez accéder à tous les fichiers générés dans le dossier Google Drive :
+                - [Ouvrir le dossier Google Drive](https://drive.google.com/drive/folders/{st.secrets.get("gdrive_folder_id")})
+                """)
+            else:
+                st.warning("⚠️ L'article a été sauvegardé localement mais l'upload sur GoogleDrive a échoué")
+                logger.warning("Article saved locally but GoogleDrive upload failed")
 
-    # ✅ Always display version hash
+        except Exception as e:
+            error_msg = f"Une erreur est survenue: {str(e)}"
+            logger.error(error_msg)
+            st.error(error_msg)
+
+    # Always display version hash
     show_version(VERSION)
 
 if __name__ == "__main__":

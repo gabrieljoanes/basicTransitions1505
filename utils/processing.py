@@ -1,8 +1,20 @@
 # utils/processing.py
 
 import random
+import requests
+import os
+import streamlit as st
 
-def get_transition_from_gpt(para_a, para_b, examples, client, model="gpt-4"):
+# Get token and URL from Streamlit secrets
+API_TOKEN = st.secrets.get("API_TOKEN")
+API_URL = st.secrets.get("API_URL")
+
+if not API_TOKEN:
+    raise ValueError("API_TOKEN not found in Streamlit secrets")
+if not API_URL:
+    raise ValueError("API_URL not found in Streamlit secrets")
+
+def get_transition_from_gpt(para_a, para_b, examples, model="gpt-4"):
     """
     Generate a context-aware French transition (max 5 words)
     using few-shot prompting from the examples list and OpenAI GPT.
@@ -34,11 +46,42 @@ def get_transition_from_gpt(para_a, para_b, examples, client, model="gpt-4"):
     })
 
     # Generate with OpenAI client
-    response = client.chat.completions.create(
-        model=model,
-        messages=messages,
-        temperature=0.5,
-        max_tokens=20
+    # response = client.chat.completions.create(
+    #     model=model,
+    #     messages=messages,
+    #     temperature=0.5,
+    #     max_tokens=20
+    # )
+
+    # Prepare request headers and body
+    headers = {
+        "Authorization": f"Bearer {API_TOKEN}",
+        "Content-Type": "application/json"
+    }
+
+    # Prepare the prompt dictionary
+    prompt_dict = {
+        "model": model,
+        "messages": messages,
+        "temperature": 0.5,
+        "max_tokens": 20
+    }
+
+    # Convert prompt dictionary to string
+    prompt_str = str(prompt_dict)
+
+    # Send request to /chat endpoint
+    response = requests.post(
+        API_URL,
+        headers=headers,
+        json={"prompt": prompt_str}
     )
 
-    return response.choices[0].message.content.strip()
+    if response.status_code != 200:
+        raise Exception(f"API request failed with status code {response.status_code}")
+
+    response_data = response.json()
+    if response_data["status"] != "success":
+        raise Exception(f"API request failed: {response_data.get('error', 'Unknown error')}")
+
+    return response_data["reply"].strip()
