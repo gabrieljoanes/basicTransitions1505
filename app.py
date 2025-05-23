@@ -6,7 +6,8 @@ from utils.layout import rebuild_article_with_transitions
 from utils.display import layout_title_and_input, show_output, show_version
 from utils.version import compute_version_hash
 from utils.title_blurb import generate_title_and_blurb
-from utils.logger import save_output_to_file, logger  # Added logger import
+from utils.logger import save_output_to_file, logger
+from utils.validate_prompt_compliance import validate_batch, display_validation_results
 
 def main():
 
@@ -51,6 +52,8 @@ def main():
                 transition = get_transition_from_gpt(para_a, para_b, examples)
                 generated_transitions.append(transition)
                 logger.info(f"Generated transition {i}/{len(pairs)}")
+
+
             # Rebuild the full article
             rebuilt_text, error = rebuild_article_with_transitions(text_input, generated_transitions)
             if error:
@@ -82,31 +85,43 @@ def main():
                 st.markdown(title_blurb)
                 st.markdown("&nbsp;\n" * 6, unsafe_allow_html=True)
 
-            # Display full article
-            st.markdown("### 🧾 Article reconstruit")
-            show_output(rebuilt_text)
+            # Create tabs for different sections
+            tab1, tab2, tab3, tab4 = st.tabs(["📝 Article", "🧩 Transitions", "📊 Analyse", "📁 Fichiers"])
 
-            # Display transitions
-            st.markdown("### 🧩 Transitions générées")
-            for i, t in enumerate(generated_transitions, 1):
-                st.markdown(f"{i}. _{t}_")
+            with tab1:
+                # Display full article
+                st.markdown("### 🧾 Article reconstruit")
+                show_output(rebuilt_text)
 
-            # Save output to file and upload to GoogleDrive
-            filepath = save_output_to_file(title_text, chapo_text, rebuilt_text, generated_transitions)
-            if filepath:
-                print(filepath, '🤔🤔🤔')
-                st.success(f"✅ L'article a été sauvegardé dans `{filepath}` et uploadé sur GoogleDrive")
-                logger.info(f"Successfully saved and uploaded article to {filepath}")
-                
-                # Add Google Drive folder link
-                st.markdown("### 📁 Accès aux fichiers")
-                st.markdown(f"""
-                Vous pouvez accéder à tous les fichiers générés dans le dossier Google Drive :
-                - [Ouvrir le dossier Google Drive](https://drive.google.com/drive/folders/{st.secrets.get("gdrive_folder_id")})
-                """)
-            else:
-                st.warning("⚠️ L'article a été sauvegardé localement mais l'upload sur GoogleDrive a échoué")
-                logger.warning("Article saved locally but GoogleDrive upload failed")
+            with tab2:
+                # Display transitions
+                st.markdown("### 🧩 Transitions générées")
+                for i, t in enumerate(generated_transitions, 1):
+                    st.markdown(f"{i}. _{t}_")
+
+            with tab3:
+                # Validate and display results
+                validation_results = validate_batch([generated_transitions])
+                logger.info(f"Validation results: {validation_results}")
+                display_validation_results(validation_results)
+
+            with tab4:
+                # Save output to file and upload to GoogleDrive
+                filepath = save_output_to_file(title_text, chapo_text, rebuilt_text, generated_transitions)
+                if filepath:
+                    print(filepath, '🤔🤔🤔')
+                    st.success(f"✅ L'article a été sauvegardé dans `{filepath}` et uploadé sur GoogleDrive")
+                    logger.info(f"Successfully saved and uploaded article to {filepath}")
+                    
+                    # Add Google Drive folder link
+                    st.markdown("### 📁 Accès aux fichiers")
+                    st.markdown(f"""
+                    Vous pouvez accéder à tous les fichiers générés dans le dossier Google Drive :
+                    - [Ouvrir le dossier Google Drive](https://drive.google.com/drive/folders/{st.secrets.get("gdrive_folder_id")})
+                    """)
+                else:
+                    st.warning("⚠️ L'article a été sauvegardé localement mais l'upload sur GoogleDrive a échoué")
+                    logger.warning("Article saved locally but GoogleDrive upload failed")
 
         except Exception as e:
             error_msg = f"Une erreur est survenue: {str(e)}"
