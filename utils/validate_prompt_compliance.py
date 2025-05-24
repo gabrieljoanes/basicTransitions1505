@@ -46,19 +46,36 @@ def check_transition_group(transitions: List[str]) -> Dict:
     """
     violations = {}
     
-    # Check for word repetition (excluding stopwords)
-    all_words = []
+    # Check for word repetition at the beginning of phrases (including stopwords)
+    first_words = []
     for transition in transitions:
         words = tokenize(transition)
-        # Filter out stopwords and empty strings
-        meaningful_words = [w for w in words if w and w not in FRENCH_STOPWORDS]
-        all_words.extend(meaningful_words)
+        if words:  # If there are any words
+            first_words.append(words[0])  # Get the first word
     
-    # Find repeated meaningful words
-    word_counts = Counter(all_words)
-    repeated_words = [word for word, count in word_counts.items() if count > 1]
-    if repeated_words:
-        violations["repetition"] = repeated_words
+    # Find repeated first words
+    first_word_counts = Counter(first_words)
+    repeated_first_words = [word for word, count in first_word_counts.items() if count > 1]
+    if repeated_first_words:
+        violations["repetition"] = repeated_first_words
+    
+    # Check for content-bearing word repetition in mid-sentence (excluding stopwords)
+    all_content_words = []
+    for transition in transitions:
+        words = tokenize(transition)
+        if len(words) > 1:  # Only check mid-sentence words
+            # Filter out stopwords and empty strings
+            meaningful_words = [w for w in words[1:] if w and w not in FRENCH_STOPWORDS]
+            all_content_words.extend(meaningful_words)
+    
+    # Find repeated content-bearing words
+    content_word_counts = Counter(all_content_words)
+    repeated_content_words = [word for word, count in content_word_counts.items() if count > 1]
+    if repeated_content_words:
+        if "repetition" in violations:
+            violations["repetition"].extend(repeated_content_words)
+        else:
+            violations["repetition"] = repeated_content_words
     
     # Check 'enfin' placement
     for i, transition in enumerate(transitions):
