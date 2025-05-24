@@ -3,6 +3,7 @@ import string
 from collections import Counter
 import os
 import streamlit as st
+from utils.logger import logger
 
 def load_stopwords() -> Set[str]:
     stopwords_file = os.path.join(os.path.dirname(__file__), 'french_stopwords.txt')
@@ -123,7 +124,33 @@ def validate_batch(batch_outputs: List[List[str]]) -> Dict:
 def display_validation_results(results):
     """
     Display validation results using Streamlit components in a clean, organized format.
+    Also prints results to console.
     """
+    # Log to console
+    logger.info("=== Validation Results ===")
+    logger.info(f"Total Outputs: {results['total_outputs']}")
+    logger.info(f"Outputs with Violations: {results['outputs_with_violations']}")
+    
+    logger.info("=== Violations Summary ===")
+    logger.info("Repetition Violations:")
+    logger.info(f"Count: {results['violations_summary']['repetition']['count']}")
+    logger.info(f"Affected Outputs: {results['violations_summary']['repetition']['affected_outputs']}")
+    logger.info(f"Violated Words: {', '.join(results['violations_summary']['repetition']['violated_words'])}")
+    
+    logger.info("Enfin Misplacement:")
+    logger.info(f"Count: {results['violations_summary']['enfin_misplaced']['count']}")
+    logger.info(f"Affected Outputs: {results['violations_summary']['enfin_misplaced']['affected_outputs']}")
+    
+    logger.info("=== Detailed Analysis ===")
+    for detail in results['details']:
+        logger.info(f"Output {detail['output_id']}:")
+        logger.info(f"Transitions: {detail['transitions']}")
+        if detail['violations']:
+            logger.info(f"Violations: {detail['violations']}")
+        else:
+            logger.info("No violations found")
+
+    # Display in Streamlit UI
     st.subheader("Validation Results")
     
     # Overall statistics
@@ -164,7 +191,6 @@ def display_validation_results(results):
             else:
                 st.success("No violations found")
 
-# Example usage
 if __name__ == "__main__":
     # Test data
     test_batch = [
@@ -180,5 +206,3 @@ if __name__ == "__main__":
     
     # Display results
     display_validation_results(results)
-    
-    print(results, '❤️')

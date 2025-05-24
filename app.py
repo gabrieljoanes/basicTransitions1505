@@ -1,5 +1,4 @@
 import streamlit as st
-from openai import OpenAI
 from utils.io import load_examples
 from utils.processing import get_transition_from_gpt
 from utils.layout import rebuild_article_with_transitions
