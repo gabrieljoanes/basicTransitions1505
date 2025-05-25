@@ -1,8 +1,9 @@
-from typing import List, Dict, Set
+from typing import List, Dict, Set, Tuple
 import string
 from collections import Counter
 import os
 import streamlit as st
+import re
 from utils.logger import logger
 
 def load_stopwords() -> Set[str]:
@@ -12,6 +13,28 @@ def load_stopwords() -> Set[str]:
 
 # Load French stopwords
 FRENCH_STOPWORDS: Set[str] = load_stopwords()
+
+# Define common stylistic expressions to check
+STYLISTIC_EXPRESSIONS = {
+    'par ailleurs',
+    'en parallèle',
+    'toujours dans',
+    'dans un autre',
+    'dans la même',
+    'dans le même',
+    'dans un tout autre',
+    'dans l\'actualité',
+    'pour terminer',
+    'pour conclure',
+    'pour finir',
+    'signalons que',
+    'sachez que',
+    'nous apprenons',
+    'nous vous informons',
+    'nous terminons',
+    'côté',
+    'rubrique'
+}
 
 def tokenize(text: str) -> List[str]:
     """
@@ -33,6 +56,79 @@ def tokenize(text: str) -> List[str]:
     # Split into words and filter out empty strings
     words = [word.strip() for word in cleaned_text.split()]
     return [word for word in words if word]
+
+def extract_ngrams(words: List[str], n: int) -> List[str]:
+    """
+    Extract n-grams from a list of words.
+    
+    Args:
+        words (List[str]): List of words
+        n (int): Size of n-gram
+        
+    Returns:
+        List[str]: List of n-grams
+    """
+    return [' '.join(words[i:i+n]) for i in range(len(words)-n+1)]
+
+def check_stylistic_patterns(transitions: List[str]) -> List[str]:
+    """
+    Check for repetitive stylistic patterns in transitions.
+    
+    Args:
+        transitions (List[str]): List of transition phrases
+        
+    Returns:
+        List[str]: List of violated patterns
+    """
+    violations = []
+    
+    # Extract bigrams and trigrams from all transitions
+    all_ngrams = []
+    for transition in transitions:
+        words = tokenize(transition)
+        all_ngrams.extend(extract_ngrams(words, 2))  # bigrams
+        all_ngrams.extend(extract_ngrams(words, 3))  # trigrams
+    
+    # Check for repeated stylistic expressions
+    ngram_counts = Counter(all_ngrams)
+    for expr in STYLISTIC_EXPRESSIONS:
+        if ngram_counts[expr] > 1:
+            violations.append(expr)
+    
+    return violations
+
+def check_flexible_patterns(transitions: List[str]) -> List[str]:
+    """
+    Check for flexible pattern matches using regex.
+    
+    Args:
+        transitions (List[str]): List of transition phrases
+        
+    Returns:
+        List[str]: List of violated patterns
+    """
+    violations = []
+    
+    # Define flexible patterns
+    patterns = [
+        r'(sur|dans|par) un autre \w+',
+        r'(sur|dans|par) la même \w+',
+        r'(sur|dans|par) le même \w+',
+        r'dans l\'actualité \w+',
+        r'pour (terminer|conclure|finir)',
+        r'(signalons|sachez|nous) \w+'
+    ]
+    
+    # Check each transition against patterns
+    for pattern in patterns:
+        matches = []
+        for transition in transitions:
+            if re.search(pattern, transition.lower()):
+                matches.append(transition)
+        if len(matches) > 1:
+            violations.append(pattern)
+    
+    return violations
 
 def check_transition_group(transitions: List[str]) -> Dict:
     """
@@ -77,6 +173,22 @@ def check_transition_group(transitions: List[str]) -> Dict:
         else:
             violations["repetition"] = repeated_content_words
     
+    # Check for stylistic pattern repetition
+    stylistic_violations = check_stylistic_patterns(transitions)
+    if stylistic_violations:
+        if "repetition" in violations:
+            violations["repetition"].extend(stylistic_violations)
+        else:
+            violations["repetition"] = stylistic_violations
+    
+    # Check for flexible pattern matches
+    flexible_violations = check_flexible_patterns(transitions)
+    if flexible_violations:
+        if "repetition" in violations:
+            violations["repetition"].extend(flexible_violations)
+        else:
+            violations["repetition"] = flexible_violations
+    
     # Check 'enfin' placement
     for i, transition in enumerate(transitions):
         words = tokenize(transition)
@@ -86,12 +198,12 @@ def check_transition_group(transitions: List[str]) -> Dict:
     
     return violations
 
-def validate_batch(batch_outputs: List[List[str]]) -> Dict:
+def validate_batch(batch_outputs: List[Tuple[str, List[str]]]) -> Dict:
     """
     Validates a batch of transition outputs for compliance with French transition rules.
     
     Args:
-        batch_outputs (List[List[str]]): List of transition phrase groups
+        batch_outputs (List[Tuple[str, List[str]]]): List of tuples containing (filename, transitions)
         
     Returns:
         Dict: Summary of violations and per-output breakdown
@@ -101,19 +213,19 @@ def validate_batch(batch_outputs: List[List[str]]) -> Dict:
     repetition_affected_outputs = set()
     enfin_misplaced_outputs = set()
     
-    for output_id, transitions in enumerate(batch_outputs, 1):
+    for filename, transitions in batch_outputs:
         violations = check_transition_group(transitions)
         
         # Track violations for summary
         if "repetition" in violations:
             repetition_violations.update(violations["repetition"])
-            repetition_affected_outputs.add(output_id)
+            repetition_affected_outputs.add(filename)
         if violations.get("enfin_misplaced"):
-            enfin_misplaced_outputs.add(output_id)
+            enfin_misplaced_outputs.add(filename)
         
         # Add details for this output
         details.append({
-            "output_id": output_id,
+            "output_id": filename,
             "transitions": transitions,
             "violations": violations
         })
@@ -151,16 +263,16 @@ def display_validation_results(results):
     logger.info("=== Violations Summary ===")
     logger.info("Repetition Violations:")
     logger.info(f"Count: {results['violations_summary']['repetition']['count']}")
-    logger.info(f"Affected Outputs: {results['violations_summary']['repetition']['affected_outputs']}")
+    logger.info(f"Affected Files: {results['violations_summary']['repetition']['affected_outputs']}")
     logger.info(f"Violated Words: {', '.join(results['violations_summary']['repetition']['violated_words'])}")
     
     logger.info("Enfin Misplacement:")
     logger.info(f"Count: {results['violations_summary']['enfin_misplaced']['count']}")
-    logger.info(f"Affected Outputs: {results['violations_summary']['enfin_misplaced']['affected_outputs']}")
+    logger.info(f"Affected Files: {results['violations_summary']['enfin_misplaced']['affected_outputs']}")
     
     logger.info("=== Detailed Analysis ===")
     for detail in results['details']:
-        logger.info(f"Output {detail['output_id']}:")
+        logger.info(f"File: {detail['output_id']}")
         logger.info(f"Transitions: {detail['transitions']}")
         if detail['violations']:
             logger.info(f"Violations: {detail['violations']}")
@@ -173,9 +285,9 @@ def display_validation_results(results):
     # Overall statistics
     col1, col2 = st.columns(2)
     with col1:
-        st.metric("Total Outputs", results['total_outputs'])
+        st.metric("Total Files", results['total_outputs'])
     with col2:
-        st.metric("Outputs with Violations", results['outputs_with_violations'])
+        st.metric("Files with Violations", results['outputs_with_violations'])
     
     # Violations Summary
     st.subheader("Violations Summary")
@@ -186,7 +298,7 @@ def display_validation_results(results):
     with rep_col1:
         st.metric("Count", results['violations_summary']['repetition']['count'])
     with rep_col2:
-        st.write("Affected Outputs:", results['violations_summary']['repetition']['affected_outputs'])
+        st.write("Affected Files:", results['violations_summary']['repetition']['affected_outputs'])
     with rep_col3:
         st.write("Violated Words:", ", ".join(results['violations_summary']['repetition']['violated_words']))
     
@@ -196,12 +308,12 @@ def display_validation_results(results):
     with enfin_col1:
         st.metric("Count", results['violations_summary']['enfin_misplaced']['count'])
     with enfin_col2:
-        st.write("Affected Outputs:", results['violations_summary']['enfin_misplaced']['affected_outputs'])
+        st.write("Affected Files:", results['violations_summary']['enfin_misplaced']['affected_outputs'])
     
     # Detailed Analysis
     st.subheader("Detailed Analysis")
     for detail in results['details']:
-        with st.expander(f"Output {detail['output_id']}"):
+        with st.expander(f"File: {detail['output_id']}"):
             st.write("**Transitions:**", detail['transitions'])
             if detail['violations']:
                 st.write("**Violations:**", detail['violations'])
@@ -209,13 +321,13 @@ def display_validation_results(results):
                 st.success("No violations found")
 
 if __name__ == "__main__":
-    # Test data
+    # Test data with file names
     test_batch = [
-        ["Par ailleurs,", "Par contre,", "Par exemple,"],
-        ["Prenons la direction de Paris,", "Ensuite, prenons la direction de Lyon,", "Enfin, une note sur Marseille"],
-        ["Enfin, une annonce importante", "Puis une autre nouvelle", "Pour conclure,"],
-        ["Dans un autre registre,", "Dans la même région,", "Encore dans le domaine économique,"],
-        ["À noter également,", "Nous terminons avec cette info :", "Pour finir,"]
+        ("article_20250525_013229.txt", ["Par ailleurs,", "Par contre,", "Par exemple,"]),
+        ("article_20250524_191814.txt", ["Prenons la direction de Paris,", "Ensuite, prenons la direction de Lyon,", "Enfin, une note sur Marseille"]),
+        ("article_20250524_191815.txt", ["Enfin, une annonce importante", "Puis une autre nouvelle", "Pour conclure,"]),
+        ("article_20250524_191816.txt", ["Dans un autre registre,", "Dans la même région,", "Encore dans le domaine économique,"]),
+        ("article_20250524_191817.txt", ["À noter également,", "Nous terminons avec cette info :", "Pour finir,"])
     ]
     
     # Run validation
