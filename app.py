@@ -7,6 +7,7 @@ from utils.version import compute_version_hash
 from utils.title_blurb import generate_title_and_blurb
 from utils.logger import save_output_to_file, logger
 from utils.validate_prompt_compliance import validate_batch, display_validation_results
+from datetime import datetime
 
 def main():
 
@@ -100,7 +101,12 @@ def main():
 
             with tab3:
                 # Validate and display results
-                validation_results = validate_batch([generated_transitions])
+                # Get current timestamp for filename
+                current_time = datetime.now().strftime("%Y%m%d_%H%M%S")
+                filename = f"article_{current_time}.txt"
+                
+                # Validate transitions with filename
+                validation_results = validate_batch([(filename, generated_transitions)])
                 logger.info(f"Validation results: {validation_results}")
                 display_validation_results(validation_results)
 
