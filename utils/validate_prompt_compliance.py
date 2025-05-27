@@ -14,34 +14,20 @@ def load_stopwords() -> Set[str]:
 # Load French stopwords
 FRENCH_STOPWORDS: Set[str] = load_stopwords()
 
-# Define common stylistic expressions to check
-STYLISTIC_EXPRESSIONS = {
-    'par ailleurs',
-    'en parallèle',
-    'toujours dans',
-    'dans un autre',
-    'dans la même',
-    'dans le même',
-    'dans un tout autre',
-    'dans l\'actualité',
-    'pour terminer',
-    'pour conclure',
-    'pour finir',
-    'signalons que',
-    'sachez que',
-    'nous apprenons',
-    'nous vous informons',
-    'nous terminons',
-    'côté',
-    'rubrique'
-}
+def load_stylistic_expressions(filepath: str = 'stylistic_patterns.txt') -> Set[str]:
+    with open(filepath, 'r', encoding='utf-8') as f:
+        return {line.strip().lower() for line in f if line.strip()}
+
+# Load stylistic patterns from file
+STYLISTIC_EXPRESSIONS: Set[str] = load_stylistic_expressions()
+print(STYLISTIC_EXPRESSIONS, "STYLISTIC_EXPRESSIONS🤞🤞🤞🤞")
 
 def tokenize(text: str) -> List[str]:
     """
     Normalizes case, removes punctuation, and returns word tokens.
     
     Args:
-        text (str): The input transition phrase
+        text (str): The input transition phrase 
         
     Returns:
         List[str]: List of lowercase words, stripped of punctuation
