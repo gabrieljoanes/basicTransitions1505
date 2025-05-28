@@ -56,7 +56,6 @@ def run_full_debug():
 
     ngram_counts = Counter(all_ngrams)
     common_ngrams = [(ng, c) for ng, c in ngram_counts.items() if c >= 3]
-
     if common_ngrams:
         report.append("🔢 Frequent stylistic n-grams (count ≥ 3):")
         for ngram, count in sorted(common_ngrams, key=lambda x: -x[1])[:20]:

@@ -18,7 +18,6 @@ def load_all_transitions() -> List[List[str]]:
     """
     transitions = []
     corpus_dir = os.path.join(os.path.dirname(__file__), '..', 'corpus')
-    
     # Create corpus directory if it doesn't exist
     if not os.path.exists(corpus_dir):
         os.makedirs(corpus_dir)
@@ -34,18 +33,18 @@ def load_all_transitions() -> List[List[str]]:
                     content = f.read()
                     
                 # Extract transitions section
-                if "**Transitions générées:**" in content:
-                    transitions_section = content.split("**Transitions générées:**")[1].strip()
+                if "Transitions :" in content:
+                    transitions_section = content.split("Transitions :")[1].strip()
                     # Parse numbered transitions
                     transition_group = []
-                    for line in transitions_section.split('\n'):
-                        if line.strip() and line[0].isdigit():
-                            # Remove the number and dot prefix
-                            transition = line.split('.', 1)[1].strip()
-                            transition_group.append(transition)
+                    for line in transitions_section.split('\n\n'):
+                        transition_group.append(line)
+                        # if line.strip() and line[0].isdigit():
+                        #     # Remove the number and dot prefix
+                        #     transition = line.split('.', 1)[1].strip()
+                        #     transition_group.append(transition)
                     if transition_group:
                         transitions.append(transition_group)
             except Exception as e:
                 logger.error(f"Error processing file {filename}: {str(e)}")
-    print(type(transitions[0]), '🤦‍♂️🤦‍♂️🤦‍♂️🤦‍♂️')
     return transitions

@@ -197,7 +197,6 @@ def main():
                         if batch_results:
                             # Validate the batch
                             validation_results = validate_batch(batch_results)
-                            print(validation_results, "🤦‍♂️❤️🤞")
                             display_validation_results(validation_results)
                         else:
                             st.warning("⚠️ Aucune transition n'a pu être extraite des fichiers sélectionnés.")
