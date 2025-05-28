@@ -13,6 +13,8 @@
 app.log
 /utils/__pycache__
 
+token.pickle
+
 
 # next.js
 /.next/
@@ -34,6 +36,7 @@ yarn-error.log*
 # local env files
 .env*.local
 .streamlit
+token.pickle
 
 # vercel
 .vercel

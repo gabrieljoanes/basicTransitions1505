@@ -47,5 +47,5 @@ def load_all_transitions() -> List[List[str]]:
                         transitions.append(transition_group)
             except Exception as e:
                 logger.error(f"Error processing file {filename}: {str(e)}")
-    
+    print(type(transitions[0]), '🤦‍♂️🤦‍♂️🤦‍♂️🤦‍♂️')
     return transitions

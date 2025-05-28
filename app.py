@@ -10,6 +10,7 @@ from utils.validate_prompt_compliance import validate_batch, display_validation_
 from datetime import datetime
 import pandas as pd
 import io
+from utils.google_drive import get_google_drive_service, list_folder_contents, process_drive_files
 
 def process_uploaded_files(uploaded_files):
     """Process multiple uploaded files and return a list of (filename, transitions) tuples."""
@@ -64,7 +65,7 @@ def main():
         "📝 Résultat", 
         "✅ Validation",
         "💾 Sauvegarde",
-        "📤 Upload par lot"
+        "📤 Upload par lot depuis Google Drive"
     ])
 
     with tab1:
@@ -162,32 +163,54 @@ def main():
                 logger.warning("Article saved locally but GoogleDrive upload failed")
 
     with tab5:
-        st.markdown("### 📤 Upload par lot")
+        st.markdown("### 📤 Upload par lot depuis Google Drive")
         st.markdown("""
-        Vous pouvez uploader un fichier texte contenant des transitions à valider.
-        Le fichier doit être formaté comme suit:
+        Vous pouvez sélectionner des fichiers texte depuis Google Drive pour valider les transitions.
+        Les fichiers doivent être formatés comme suit:
         ```
-        nom_du_fichier.txt
         transition1
         transition2
         transition3
         ```
         """)
         
-        uploaded_files = st.file_uploader("Choisir des fichiers depuis Google Drive", type=['txt'], accept_multiple_files=True, key="gdrive_uploader")
+        try:
+            # Initialize Google Drive service
+            drive_service = get_google_drive_service()
+            
+            # Get folder contents
+            folder_id = st.secrets.get("gdrive_folder_id")
+            files = list_folder_contents(drive_service, folder_id)
+            
+            if files:
+                # Create a multiselect for files
+                selected_files = st.multiselect(
+                    "Sélectionnez les fichiers à valider",
+                    options=files,
+                    format_func=lambda x: x['name']
+                )
+                
+                if selected_files:
+                    if st.button("Valider les transitions"):
+                        # Process selected files
+                        batch_results = process_drive_files(drive_service, selected_files)
+                        if batch_results:
+                            # Validate the batch
+                            validation_results = validate_batch(batch_results)
+                            display_validation_results(validation_results)
+                        else:
+                            st.warning("⚠️ Aucune transition n'a pu être extraite des fichiers sélectionnés.")
+            else:
+                st.warning("⚠️ Aucun fichier texte trouvé dans le dossier Google Drive.")
+                
+        except Exception as e:
+            st.error(f"Erreur lors de l'accès à Google Drive: {str(e)}")
+            logger.error(f"Google Drive access error: {str(e)}")
+        
         st.markdown(f"""
-        Ou accédez directement au dossier Google Drive :
+        ### 📁 Accès au dossier Google Drive
         [Ouvrir le dossier Google Drive](https://drive.google.com/drive/folders/{st.secrets.get("gdrive_folder_id")})
         """)
-        if uploaded_files is not None:
-            # Process the uploaded file
-            batch_results = process_uploaded_files(uploaded_files)
-            if batch_results:
-                # Validate the batch
-                validation_results = validate_batch(batch_results)
-                display_validation_results(validation_results)
-            else:
-                st.warning("⚠️ Le fichier n'a pas pu être traité. Vérifiez le format.")
 
     # Always display version hash
     show_version(VERSION)

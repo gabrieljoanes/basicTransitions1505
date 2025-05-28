@@ -85,3 +85,7 @@ def run_full_debug():
             report.append(f"  {phrase}")
 
     return report
+
+if __name__ == "__main__":
+    report = run_full_debug()
+    print("\n".join(report))
