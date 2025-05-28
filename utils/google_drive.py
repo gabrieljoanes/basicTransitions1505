@@ -3,6 +3,7 @@ from googleapiclient.http import MediaIoBaseDownload
 import streamlit as st
 from utils.logger import logger
 from google.oauth2 import service_account
+import io
 
 # Google Drive API setup
 # SCOPES are typically inferred or managed by sharing in Google Drive for service accounts.
