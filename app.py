@@ -183,23 +183,26 @@ def main():
             files = list_folder_contents(drive_service, folder_id)
             
             if files:
-                # Create a multiselect for files
-                selected_files = st.multiselect(
+                selected_files = []
+                selected = st.multiselect(
                     "Sélectionnez les fichiers à valider",
                     options=files,
                     format_func=lambda x: x['name']
                 )
-                
+                if st.button("select files"):
+                    selected_files = selected
+                if st.button("Select All files"):
+                    selected_files = files
                 if selected_files:
-                    if st.button("Valider les transitions"):
-                        # Process selected files
-                        batch_results = process_drive_files(drive_service, selected_files)
-                        if batch_results:
-                            # Validate the batch
-                            validation_results = validate_batch(batch_results)
-                            display_validation_results(validation_results)
-                        else:
-                            st.warning("⚠️ Aucune transition n'a pu être extraite des fichiers sélectionnés.")
+                    print("😂😂😂")
+                    # Process selected files
+                    batch_results = process_drive_files(drive_service, selected_files)
+                    if batch_results:
+                        # Validate the batch
+                        validation_results = validate_batch(batch_results)
+                        display_validation_results(validation_results)
+                    else:
+                        st.warning("⚠️ Aucune transition n'a pu être extraite des fichiers sélectionnés.")
             else:
                 st.warning("⚠️ Aucun fichier texte trouvé dans le dossier Google Drive.")
                 
