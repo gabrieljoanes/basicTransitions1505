@@ -194,7 +194,6 @@ def main():
                 if st.button("Select All files"):
                     selected_files = files
                 if selected_files:
-                    print("😂😂😂")
                     # Process selected files
                     batch_results = process_drive_files(drive_service, selected_files)
                     if batch_results:
