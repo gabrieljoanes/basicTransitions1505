@@ -1,6 +1,6 @@
-st.write("Secrets loaded:", list(st.secrets.keys()))
-
 import streamlit as st
+# Temporary debug line
+st.write("Secrets loaded:", list(st.secrets.keys()))
 from openai import OpenAI
 from utils.io import load_examples
 from utils.processing import get_transition_from_gpt
