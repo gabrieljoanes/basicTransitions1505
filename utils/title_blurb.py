@@ -1,7 +1,3 @@
-# utils/title_blurb.py
-
-import openai
-
 PROMPT = """Tu es un assistant de rédaction pour un journal local français.
 
 Ta tâche est de générer un **titre** et un **chapeau** (blurb) à partir du **premier paragraphe uniquement**.
@@ -26,14 +22,17 @@ Titre : [titre généré]
 Chapeau : [chapeau généré]
 """
 
-def generate_title_and_blurb(paragraph, client):
-    response = client.chat.completions.create(
-        model="gpt-4",
-        messages=[
-            {"role": "system", "content": PROMPT},
-            {"role": "user", "content": paragraph.strip()}
-        ],
-        temperature=0.5,
-        max_tokens=100
-    )
-    return response.choices[0].message.content.strip()
+def generate_title_and_blurb(paragraph: str, call_proxy) -> str:
+    """
+    Generates a news-style title and blurb using a proxy-based LLM call.
+
+    :param paragraph: The input paragraph (first paragraph of the article)
+    :param call_proxy: Function that takes a full prompt and returns model output
+    :return: A string containing 'Titre : ...' and 'Chapeau : ...'
+    """
+    full_prompt = f"{PROMPT}\n\nParagraphe :\n\"\"\"{paragraph.strip()}\"\"\""
+
+    try:
+        return call_proxy(full_prompt)
+    except Exception as e:
+        return f"Erreur lors de la génération du titre : {str(e)}"
