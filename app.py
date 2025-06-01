@@ -20,8 +20,12 @@ def call_proxy(prompt, model="gpt-4"):
         "Authorization": f"Bearer {API_TOKEN}",
         "Content-Type": "application/json"
     }
+
+    # Fix: escape for safe literal string inside backend
+    escaped_prompt = repr(prompt)
+
     payload = {
-        "prompt": prompt,
+        "prompt": escaped_prompt,
         "model": model
     }
 
