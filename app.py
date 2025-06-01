@@ -42,7 +42,7 @@ def call_proxy(prompt_text, model="gpt-4"):
         raise
 
     response.raise_for_status()
-    return debug_json.get("completion", "").strip()
+    return debug_json.get("reply", "").strip()  # ✅ Changed here
 
 def main():
     VERSION = compute_version_hash([
@@ -104,7 +104,7 @@ def main():
 
             st.markdown("### 🧩 Transitions générées")
             for i, t in enumerate(generated_transitions, 1):
-                st.markdown(f"{i}. _{t}_")
+                st.markdown(f"{i}. _{t}_")  # ✅ Will now display the real transitions
 
             filepath = save_output_to_file(title_text, chapo_text, rebuilt_text, generated_transitions)
             st.success(f"✅ L'article a été sauvegardé dans `{filepath}`")
