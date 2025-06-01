@@ -121,9 +121,23 @@ with tabs[1]:
 
 # --- Validation ---
 with tabs[2]:
-    st.markdown("### 🧩 Transitions générées")
-    for i, t in enumerate(st.session_state.generated_transitions, 1):
-        st.markdown(f"{i}. _{t}_")
+    st.markdown("### ✅ Validation des transitions")
+
+    if st.session_state.generated_transitions:
+        invalid_transitions = []
+        for i, t in enumerate(st.session_state.generated_transitions, 1):
+            words = t.split()
+            if len(words) != 5 or len(set(words)) != 5:
+                invalid_transitions.append((i, t))
+
+        if invalid_transitions:
+            st.error("Certaines transitions ne respectent pas les critères :")
+            for idx, trans in invalid_transitions:
+                st.write(f"Transition {idx}: '{trans}'")
+        else:
+            st.success("Toutes les transitions sont valides.")
+    else:
+        st.warning("Aucune transition générée à valider.")
 
 # --- Sauvegarde ---
 with tabs[3]:
