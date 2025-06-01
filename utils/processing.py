@@ -23,14 +23,22 @@ def get_transition_from_gpt(para_a, para_b, examples, call_proxy, model="gpt-4")
         "Évite l'expression 'en parallèle'."
     )
 
-    # Format few-shot examples
+    # Format few-shot examples from 'input' and 'transition'
     fewshot = ""
     for ex in selected_examples:
-        fewshot += f"Paragraphe A :\n\"\"\"{ex['a']}\"\"\"\n\n"
-        fewshot += f"Paragraphe B :\n\"\"\"{ex['b']}\"\"\"\n\n"
+        if "input" in ex and "TRANSITION" in ex["input"]:
+            part_a, part_b = ex["input"].split("TRANSITION", 1)
+            part_a = part_a.strip()
+            part_b = part_b.strip()
+        else:
+            part_a = "MISSING A"
+            part_b = "MISSING B"
+
+        fewshot += f"Paragraphe A :\n\"\"\"{part_a}\"\"\"\n\n"
+        fewshot += f"Paragraphe B :\n\"\"\"{part_b}\"\"\"\n\n"
         fewshot += f"Transition :\n{ex['transition']}\n\n"
 
-    # Format current pair
+    # Format current pair prompt
     current_prompt = f"""
 {system_prompt}
 
@@ -45,7 +53,7 @@ Paragraphe B :
 \"\"\"{para_b.strip()}\"\"\"
 
 Transition :
-    """.strip()
+""".strip()
 
     try:
         return call_proxy(current_prompt, model=model)
