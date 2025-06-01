@@ -15,21 +15,30 @@ st.write("Secrets loaded:", list(st.secrets.keys()))
 API_URL = st.secrets["API_URL"]
 API_TOKEN = st.secrets["API_TOKEN"]
 
-def call_proxy(prompt, model="gpt-3.5-turbo"):
+def call_proxy(prompt, model="gpt-4"):
     headers = {
         "Authorization": f"Bearer {API_TOKEN}",
         "Content-Type": "application/json"
     }
     payload = {
-        "model": model,
-        "messages": [{"role": "user", "content": prompt}]
+        "prompt": prompt,
+        "model": model
     }
+
     response = requests.post(API_URL, headers=headers, json=payload)
+
+    # Debug log for proxy output
+    try:
+        debug_json = response.json()
+        st.write("🛠 DEBUG: proxy response", debug_json)
+    except Exception as e:
+        st.error(f"❌ Erreur lors de l'analyse de la réponse proxy : {str(e)}")
+        raise
+
     response.raise_for_status()
-    return response.json()["choices"][0]["message"]["content"].strip()
+    return debug_json.get("completion", "").strip()
 
 def main():
-    # ✅ Compute version hash
     VERSION = compute_version_hash([
         "app.py",
         "transitions.json",
@@ -42,7 +51,6 @@ def main():
         "utils/logger.py"
     ])
 
-    # ✅ Layout input
     text_input = layout_title_and_input()
 
     if st.button("✨ Générer les transitions"):
@@ -54,7 +62,6 @@ def main():
         parts = text_input.split("TRANSITION")
         pairs = list(zip(parts[:-1], parts[1:]))
 
-        # Replace original OpenAI call with proxy
         title_blurb = generate_title_and_blurb(parts[0], call_proxy)
 
         generated_transitions = []
