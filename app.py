@@ -1,3 +1,5 @@
+st.write("Secrets loaded:", list(st.secrets.keys()))
+
 import streamlit as st
 from openai import OpenAI
 from utils.io import load_examples
@@ -7,6 +9,7 @@ from utils.display import layout_title_and_input, show_output, show_version
 from utils.version import compute_version_hash
 from utils.title_blurb import generate_title_and_blurb
 from utils.logger import save_output_to_file  # ✅ New import
+
 
 def main():
     # ✅ Initialize OpenAI client
