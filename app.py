@@ -15,18 +15,20 @@ st.write("Secrets loaded:", list(st.secrets.keys()))
 API_URL = st.secrets["API_URL"]
 API_TOKEN = st.secrets["API_TOKEN"]
 
-def call_proxy(prompt, model="gpt-4"):
+def call_proxy(prompt_text, model="gpt-4"):
     headers = {
         "Authorization": f"Bearer {API_TOKEN}",
         "Content-Type": "application/json"
     }
 
-    # Fix: escape for safe literal string inside backend
-    escaped_prompt = repr(prompt)
+    # Construct valid OpenAI payload and pass as string literal for eval()
+    openai_payload = {
+        "model": model,
+        "messages": [{"role": "user", "content": prompt_text}]
+    }
 
     payload = {
-        "prompt": escaped_prompt,
-        "model": model
+        "prompt": repr(openai_payload)
     }
 
     response = requests.post(API_URL, headers=headers, json=payload)
