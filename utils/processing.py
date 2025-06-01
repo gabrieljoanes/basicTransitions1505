@@ -19,28 +19,34 @@ def get_transition_from_gpt(para_a, para_b, examples, model="gpt-4"):
     Generate a context-aware French transition (max 5 words)
     using few-shot prompting from the examples list and OpenAI GPT.
     """
-
     # Select 3 random examples for few-shot context
     selected_examples = random.sample(examples, min(3, len(examples)))
-    print("🤦‍♂️🤦‍♂️🤦‍♂️")
+
     system_prompt = (
         "Tu es un assistant de presse francophone. "
         "Ta tâche est d'insérer une transition brève et naturelle (5 mots maximum) "
         "entre deux paragraphes d'actualité régionale. "
-        "La transition doit être journalistique, fluide, neutre et ne pas répéter les débuts comme 'Par ailleurs' ou parallèlement ou sujet."
-        "the final TRANSITION in the article must be a proper concluding transition that clearly signals the end of the article. For that final transition only, choose from the following list of expressions: Enfin, Et pour finir, Pour terminer, Pour finir, En guise de conclusion, En conclusion, En guise de mot de la fin, Pour clore cette revue, Pour conclure cette sélection, Dernier point à noter, Pour refermer ce tour d’horizon. These closing transitions should only appear once and exclusively as the last transition in the article."
-        "if you use par ailleurs, c'est mieux d'étoffer, avec Par ailleurs, on annonce que, Par ailleurs, sachez que,"
-        "avoid the use of en parallèle"
+        "La transition doit être journalistique, fluide, neutre et ne pas répéter les débuts comme 'Par ailleurs' ou parallèlement ou sujet. "
+        "La dernière transition de l’article doit signaler clairement la fin de l’article. "
+        "Utilise uniquement une des formules de clôture suivantes pour la dernière transition : "
+        "Enfin, Et pour finir, Pour terminer, En guise de conclusion, En conclusion, En guise de mot de la fin, "
+        "Pour clore cette revue, Pour conclure cette sélection, Dernier point à noter, Pour refermer ce tour d’horizon. "
+        "Ces formules de conclusion ne doivent apparaître qu’une seule fois, à la toute fin. "
+        "Si tu utilises 'Par ailleurs', étoffe la formulation : par exemple 'Par ailleurs, on annonce que'. "
+        "Évite 'En parallèle'."
     )
 
     # Prepare messages for OpenAI chat completion
     messages = [{"role": "system", "content": system_prompt}]
-    
-    # Add examples using the new structure
-    for example_group in selected_examples:
-        # Use the first transition from each group as an example
-        messages.append({"role": "user", "content": "Exemple de transition:"})
-        messages.append({"role": "assistant", "content": example_group[0]})
+    for ex in selected_examples:
+        if "paragraph_a" in ex and "paragraph_b" in ex and "transition" in ex:
+            messages.append({
+                "role": "user",
+                "content": f"{ex['paragraph_a'].strip()}\nTRANSITION\n{ex['paragraph_b'].strip()}"
+            })
+            messages.append({"role": "assistant", "content": ex["transition"].strip()})
+        else:
+            raise ValueError(f"Example format invalid: {ex}")
 
     # Add the real paragraph pair
     messages.append({
@@ -48,43 +54,26 @@ def get_transition_from_gpt(para_a, para_b, examples, model="gpt-4"):
         "content": f"{para_a.strip()}\nTRANSITION\n{para_b.strip()}"
     })
 
-    # Generate with OpenAI client
-    # response = client.chat.completions.create(
-    #     model=model,
-    #     messages=messages,
-    #     temperature=0.5,
-    #     max_tokens=20
-    # )
-
-    # Prepare request headers and body
+    # Send request to your proxy endpoint
     headers = {
         "Authorization": f"Bearer {API_TOKEN}",
         "Content-Type": "application/json"
     }
 
-    # Prepare the prompt dictionary
-    prompt_dict = {
+    payload = {
         "model": model,
         "messages": messages,
         "temperature": 0.5,
         "max_tokens": 20
     }
 
-    # Convert prompt dictionary to string
-    prompt_str = str(prompt_dict)
-
-    # Send request to /chat endpoint
-    response = requests.post(
-        API_URL,
-        headers=headers,
-        json={"prompt": prompt_str}
-    )
+    response = requests.post(API_URL, headers=headers, json={"prompt": str(payload)})
 
     if response.status_code != 200:
         raise Exception(f"API request failed with status code {response.status_code}")
 
-    response_data = response.json()
-    if response_data["status"] != "success":
-        raise Exception(f"API request failed: {response_data.get('error', 'Unknown error')}")
+    data = response.json()
+    if data.get("status") != "success":
+        raise Exception(f"API request failed: {data.get('error', 'Unknown error')}")
 
-    return response_data["reply"].strip()
+    return data["reply"].strip()
