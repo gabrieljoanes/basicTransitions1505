@@ -76,9 +76,21 @@ def main():
                 print(parts[0], '🙋‍♂️🐦‍🔥😊😊')
                 # Safely extract title and chapo from dict
                 title_blurb = generate_title_and_blurb(parts[0])
-                if isinstance(title_blurb, dict):
-                    title = title_blurb.get("title", "Titre non défini")
-                    chapo = title_blurb.get("chapo", "Chapeau non défini")
+                # Parse the title and blurb from the response
+                title_blurb_lines = title_blurb.split('\n')
+                title = ""
+                chapo = ""
+                
+                if isinstance(title_blurb, str):
+                    print("True🤞🤞🤞🤞🤞🤞")
+                    for line in title_blurb_lines:
+                        if line.startswith('Titre :'):
+                            title = line.replace('Titre :', '').strip()
+                        elif line.startswith('Chapeau :'):
+                            chapo = line.replace('Chapeau :', '').strip()
+                    
+                    # title = title_blurb.get("title", "Titre non défini")
+                    # chapo = title_blurb.get("chapo", "Chapeau non défini")
                 else:
                     title = "Titre non défini"
                     chapo = "Chapeau non défini"

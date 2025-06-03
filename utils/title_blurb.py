@@ -78,5 +78,5 @@ def generate_title_and_blurb(paragraph: str):
             f"Error: {response_data.get('error', 'Unknown error')}\n"
             f"Full response:\n{response.text}"
         )
-
+    
     return response_data["reply"].strip()
