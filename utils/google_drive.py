@@ -7,7 +7,7 @@ import io
 
 # Google Drive API setup
 # SCOPES are typically inferred or managed by sharing in Google Drive for service accounts.
-SCOPES = ['https://www.googleapis.com/auth/drive.readonly'] # Keeping this for clarity, but service account permissions are key.
+SCOPES = ['https://www.googleapis.com/auth/drive.readonly', 'https://www.googleapis.com/auth/drive.file']
 
 def get_google_drive_service():
     """Get or create Google Drive service using a service account key from Streamlit secrets."""
@@ -48,10 +48,10 @@ def get_google_drive_service():
         return None
 
 def list_folder_contents(service, folder_id):
-    """List all files in a Google Drive folder."""
+    """List all files and folders in a Google Drive folder."""
     results = service.files().list(
-        q=f"'{folder_id}' in parents and mimeType='text/plain'",
-        fields="files(id, name)",
+        q=f"'{folder_id}' in parents",
+        fields="files(id, name, mimeType)",
         pageSize=1000
     ).execute()
     return results.get('files', [])
@@ -66,35 +66,67 @@ def download_file_content(service, file_id):
         status, done = downloader.next_chunk()
     return fh.getvalue().decode('utf-8')
 
+def is_folder(mime_type):
+    """Check if the item is a folder based on its MIME type."""
+    return mime_type == 'application/vnd.google-apps.folder'
+
+def process_folder(service, folder_id):
+    """Process all files in a folder and its subfolders recursively."""
+    results = []
+    items = list_folder_contents(service, folder_id)
+    
+    for item in items:
+        if is_folder(item['mimeType']):
+            # Recursively process subfolders
+            subfolder_results = process_folder(service, item['id'])
+            results.extend(subfolder_results)
+        elif item['mimeType'] == 'text/plain':
+            # Process individual files
+            try:
+                content = download_file_content(service, item['id'])
+                transitions = extract_transitions(content)
+                if transitions:
+                    results.append((item['name'], transitions))
+            except Exception as e:
+                logger.error(f"Error processing file {item['name']}: {str(e)}")
+                continue
+    
+    return results
+
+def extract_transitions(content):
+    """Extract transitions from file content."""
+    transitions = []
+    lines = content.strip().split('\n')
+    
+    for line in lines:
+        line = line.strip()
+        if line.startswith("Transitions générées:"):
+            continue
+        if line and line[0].isdigit() and ". " in line:
+            transition = line.split(". ", 1)[1].strip()
+            transitions.append(transition)
+    
+    return transitions
+
 def process_drive_files(service, files):
     """Process multiple Google Drive files and return a list of (filename, transitions) tuples."""
     results = []
     
     for file in files:
         try:
-            # Download and read the file content
-            content = download_file_content(service, file['id'])
-            
-            # Split into lines and process
-            lines = content.strip().split('\n')
-            transitions = []
-            
-            # Extract transitions from the content
-            for line in lines:
-                line = line.strip()
-                if line.startswith("Transitions générées:"):
-                    continue
-                if line and line[0].isdigit() and ". " in line:
-                    # Extract transition text after the number and period
-                    transition = line.split(". ", 1)[1].strip()
-                    transitions.append(transition)
-            
-            if transitions:
-                filename = file['name']
-                results.append((filename, transitions))
+            if is_folder(file.get('mimeType')):
+                # Process folder
+                folder_results = process_folder(service, file['id'])
+                results.extend(folder_results)
+            else:
+                # Process individual file
+                content = download_file_content(service, file['id'])
+                transitions = extract_transitions(content)
+                if transitions:
+                    results.append((file['name'], transitions))
                 
         except Exception as e:
-            logger.error(f"Error processing file {file['name']}: {str(e)}")
+            logger.error(f"Error processing file/folder {file['name']}: {str(e)}")
             continue
             
     return results 

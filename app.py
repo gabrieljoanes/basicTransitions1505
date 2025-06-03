@@ -10,7 +10,7 @@ from utils.version import compute_version_hash
 from utils.title_blurb import generate_title_and_blurb
 from utils.logger import save_output_to_file, logger
 from utils.validate_prompt_compliance import validate_batch, display_validation_results
-from utils.google_drive import get_google_drive_service, list_folder_contents, process_drive_files
+from utils.google_drive import get_google_drive_service, list_folder_contents, process_drive_files, is_folder
 
 def process_uploaded_files(uploaded_files):
     results = []
@@ -170,28 +170,47 @@ def main():
         try:
             drive_service = get_google_drive_service()
             folder_id = st.secrets.get("gdrive_folder_id")
-            files = list_folder_contents(drive_service, folder_id)
+            items = list_folder_contents(drive_service, folder_id)
 
-            if files:
-                selected_files = []
-                selected = st.multiselect(
-                    "Sélectionnez les fichiers à valider",
-                    options=files,
-                    format_func=lambda x: x['name']
-                )
-                if st.button("select files"):
-                    selected_files = selected
-                if st.button("Select All files"):
-                    selected_files = files
-                if selected_files:
-                    batch_results = process_drive_files(drive_service, selected_files)
-                    if batch_results:
-                        validation_results = validate_batch(batch_results)
-                        display_validation_results(validation_results)
+            if items:
+                # Separate files and folders
+                files = [item for item in items if not is_folder(item['mimeType'])]
+                folders = [item for item in items if is_folder(item['mimeType'])]
+
+                # Create two columns for files and folders
+                col1, col2 = st.columns(2)
+
+                with col1:
+                    st.subheader("Fichiers")
+                    selected_files = st.multiselect(
+                        "Sélectionnez les fichiers à valider",
+                        options=files,
+                        format_func=lambda x: x['name']
+                    )
+
+                with col2:
+                    st.subheader("Dossiers")
+                    selected_folders = st.multiselect(
+                        "Sélectionnez les dossiers à valider",
+                        options=folders,
+                        format_func=lambda x: x['name']
+                    )
+
+                # Combine selected items
+                selected_items = selected_files + selected_folders
+
+                if st.button("Valider la sélection"):
+                    if selected_items:
+                        batch_results = process_drive_files(drive_service, selected_items)
+                        if batch_results:
+                            validation_results = validate_batch(batch_results)
+                            display_validation_results(validation_results)
+                        else:
+                            st.warning("⚠️ Aucune transition n'a pu être extraite des fichiers sélectionnés.")
                     else:
-                        st.warning("⚠️ Aucune transition n'a pu être extraite des fichiers sélectionnés.")
+                        st.warning("⚠️ Veuillez sélectionner au moins un fichier ou un dossier.")
             else:
-                st.warning("⚠️ Aucun fichier trouvé dans le dossier.")
+                st.warning("⚠️ Aucun fichier ou dossier trouvé dans le dossier Google Drive.")
         except Exception:
             st.error("🚨 Erreur d'accès à Google Drive.")
             st.code(traceback.format_exc(), language="python")
