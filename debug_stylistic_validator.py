@@ -22,21 +22,21 @@ def run_full_debug():
     # Step 1: Load transitions
     report.append("🔍 Loading transitions...")
     data = load_all_transitions()
-
-    if not isinstance(data, list) or not all(isinstance(group, list) for group in data) \
-       or not all(isinstance(phrase, str) for group in data for phrase in group):
+    
+    if not isinstance(data, list):
         report.append("❌ Transitions format invalid.")
         return report
 
     report.append("✅ Transitions loaded successfully.")
-    report.append(f"📦 Total groups: {len(data)}")
-    report.append("📦 Sample output (first 2 groups):")
+    report.append(f"📦 Total Transitions: {len(data)}")
+    report.append("📦 Sample output (first 2 Transition):")
     for i, group in enumerate(data[:2]):
-        report.append(f"Group {i + 1}: {group}")
+        report.append(f"Transition {i + 1}: {group}")
 
     # Step 2: Check for duplicates
-    all_phrases = [phrase.strip().lower() for group in data for phrase in group]
+    all_phrases = [phrase.strip().lower() for phrase in data]
     phrase_counts = Counter(all_phrases)
+    
     duplicates = {phrase: count for phrase, count in phrase_counts.items() if count > 1}
 
     if duplicates:
@@ -49,10 +49,9 @@ def run_full_debug():
     # Step 3: N-gram analysis
     report.append("\n🧮 Analyzing common bigrams and trigrams...")
     all_ngrams = []
-    for group in data:
-        for phrase in group:
-            all_ngrams.extend(extract_ngrams(tokenize(phrase), 2))
-            all_ngrams.extend(extract_ngrams(tokenize(phrase), 3))
+    for phrase in data:
+        all_ngrams.extend(extract_ngrams(tokenize(phrase), 2))
+        all_ngrams.extend(extract_ngrams(tokenize(phrase), 3))
 
     ngram_counts = Counter(all_ngrams)
     common_ngrams = [(ng, c) for ng, c in ngram_counts.items() if c >= 3]

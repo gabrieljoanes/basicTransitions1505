@@ -82,7 +82,6 @@ def main():
                 chapo = ""
                 
                 if isinstance(title_blurb, str):
-                    print("True🤞🤞🤞🤞🤞🤞")
                     for line in title_blurb_lines:
                         if line.startswith('Titre :'):
                             title = line.replace('Titre :', '').strip()
