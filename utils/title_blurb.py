@@ -32,4 +32,8 @@ def generate_title_and_blurb(paragraph, client, model="gpt-4-turbo"):
         temperature=0.5,
         max_tokens=100
     )
-    return response.choices[0].message.content.strip()
+    title_blurb = response.choices[0].message.content.strip()
+    prompt_tokens = response.usage.prompt_tokens
+    completion_tokens = response.usage.completion_tokens
+
+    return title_blurb, prompt_tokens, completion_tokens
