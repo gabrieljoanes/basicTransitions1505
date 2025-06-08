@@ -1,7 +1,3 @@
-# utils/title_blurb.py
-
-import openai
-
 PROMPT = """Tu es un assistant de rédaction pour un journal local français.
 
 Ta tâche est de générer un **titre** et un **chapeau** (blurb) à partir du **premier paragraphe uniquement**.
@@ -26,9 +22,9 @@ Titre : [titre généré]
 Chapeau : [chapeau généré]
 """
 
-def generate_title_and_blurb(paragraph, client):
+def generate_title_and_blurb(paragraph, client, model="gpt-4-turbo"):
     response = client.chat.completions.create(
-        model="gpt-4",
+        model=model,
         messages=[
             {"role": "system", "content": PROMPT},
             {"role": "user", "content": paragraph.strip()}
