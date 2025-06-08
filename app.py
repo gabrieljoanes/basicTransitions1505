@@ -8,6 +8,8 @@ from utils.version import compute_version_hash
 from utils.title_blurb import generate_title_and_blurb
 from utils.logger import save_output_to_file
 
+MODEL = "gpt-4-turbo"  # ✅ Model selection
+
 def main():
     # ✅ Initialize OpenAI client
     client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
@@ -41,13 +43,13 @@ def main():
         pairs = list(zip(parts[:-1], parts[1:]))
 
         # ✅ Generate title and blurb from the first paragraph
-        title_blurb = generate_title_and_blurb(parts[0], client)
+        title_blurb = generate_title_and_blurb(parts[0], client, model=MODEL)
 
         # ✅ Generate transitions with `is_last` logic
         generated_transitions = []
         for i, (para_a, para_b) in enumerate(pairs):
             is_last = (i == len(pairs) - 1)
-            transition = get_transition_from_gpt(para_a, para_b, examples, client, is_last=is_last)
+            transition = get_transition_from_gpt(para_a, para_b, examples, client, is_last=is_last, model=MODEL)
             generated_transitions.append(transition)
 
         # ✅ Rebuild full article
