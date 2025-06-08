@@ -5,13 +5,11 @@ def get_transition_from_gpt(para_a, para_b, examples, client, is_last=False, mod
     """
     Generate a context-aware French transition (max 5 words)
     using few-shot prompting from the examples list and OpenAI GPT.
-    Retries if final transition is invalid. Logs progress using Streamlit UI.
+    Logs all retry attempts using Streamlit.
     """
 
-    # Select up to 3 random few-shot examples
     selected_examples = random.sample(examples, min(3, len(examples)))
 
-    # Valid closing transitions (used only in the last pair)
     closing_transitions = [
         "Enfin", "Et pour finir", "Pour terminer", "Pour finir", "En guise de conclusion", "En conclusion",
         "En guise de mot de la fin", "Pour clore cette revue", "Pour conclure cette sélection",
@@ -21,7 +19,6 @@ def get_transition_from_gpt(para_a, para_b, examples, client, is_last=False, mod
     def is_valid_closing_transition(text):
         return any(text.strip().lower().startswith(valid.lower()) for valid in closing_transitions)
 
-    # Build system prompt
     base_prompt = (
         "Tu es un assistant de presse francophone. "
         "Ta tâche est d'insérer une transition brève et naturelle (5 mots maximum) "
@@ -43,7 +40,6 @@ def get_transition_from_gpt(para_a, para_b, examples, client, is_last=False, mod
             f"N’utilise aucune des transitions suivantes : [{', '.join(closing_transitions)}]. "
         )
 
-    # Build message history
     messages = [{"role": "system", "content": base_prompt}]
     for ex in selected_examples:
         messages.append({"role": "user", "content": ex["input"]})
@@ -53,7 +49,7 @@ def get_transition_from_gpt(para_a, para_b, examples, client, is_last=False, mod
         "content": f"{para_a.strip()}\nTRANSITION\n{para_b.strip()}"
     })
 
-    # Try generating a transition up to 5 times
+    attempt_logs = []
     max_attempts = 5
     for attempt in range(max_attempts):
         response = client.chat.completions.create(
@@ -64,12 +60,19 @@ def get_transition_from_gpt(para_a, para_b, examples, client, is_last=False, mod
         )
 
         transition = response.choices[0].message.content.strip()
-        st.write(f"[Attempt {attempt + 1}] Transition: {transition}")
+        attempt_logs.append(f"[Attempt {attempt + 1}] {transition}")
 
         if not is_last or is_valid_closing_transition(transition):
-            return transition
+            break
 
-    # Fallback: randomly choose a valid closing transition
-    fallback = random.choice(closing_transitions) + ","
-    st.warning(f"⚠️ GPT failed after {max_attempts} attempts. Using fallback: {fallback}")
-    return fallback
+    # Display all attempts
+    st.markdown("##### 🔎 Tentatives de transition")
+    for log in attempt_logs:
+        st.write(log)
+
+    if not is_last or is_valid_closing_transition(transition):
+        return transition
+    else:
+        fallback = random.choice(closing_transitions) + ","
+        st.warning(f"⚠️ Fallback triggered. Using: {fallback}")
+        return fallback
