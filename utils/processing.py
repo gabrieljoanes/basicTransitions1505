@@ -5,7 +5,7 @@ def get_transition_from_gpt(para_a, para_b, examples, client, is_last=False, mod
     """
     Generate a context-aware French transition (max 5 words)
     using few-shot prompting from the examples list and OpenAI GPT.
-    Logs all retry attempts using Streamlit.
+    Silent version: no Streamlit logging output.
     """
 
     selected_examples = random.sample(examples, min(3, len(examples)))
@@ -49,9 +49,8 @@ def get_transition_from_gpt(para_a, para_b, examples, client, is_last=False, mod
         "content": f"{para_a.strip()}\nTRANSITION\n{para_b.strip()}"
     })
 
-    attempt_logs = []
     max_attempts = 5
-    for attempt in range(max_attempts):
+    for _ in range(max_attempts):
         response = client.chat.completions.create(
             model=model,
             messages=messages,
@@ -60,19 +59,8 @@ def get_transition_from_gpt(para_a, para_b, examples, client, is_last=False, mod
         )
 
         transition = response.choices[0].message.content.strip()
-        attempt_logs.append(f"[Attempt {attempt + 1}] {transition}")
-
         if not is_last or is_valid_closing_transition(transition):
-            break
+            return transition
 
-    # Display all attempts
-    st.markdown("##### 🔎 Tentatives de transition")
-    for log in attempt_logs:
-        st.write(log)
-
-    if not is_last or is_valid_closing_transition(transition):
-        return transition
-    else:
-        fallback = random.choice(closing_transitions) + ","
-        st.warning(f"⚠️ Fallback triggered. Using: {fallback}")
-        return fallback
+    # Fallback to random valid final transition
+    return random.choice(closing_transitions) + ","
