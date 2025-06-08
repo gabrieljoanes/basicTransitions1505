@@ -1,80 +1,108 @@
-import random
+import streamlit as st
+from openai import OpenAI
+from utils.io import load_examples
+from utils.processing import get_transition_from_gpt
+from utils.layout import rebuild_article_with_transitions
+from utils.display import layout_title_and_input, show_output, show_version
+from utils.version import compute_version_hash
+from utils.title_blurb import generate_title_and_blurb
+from utils.logger import save_output_to_file
 
-def get_transition_from_gpt(para_a, para_b, examples, client, is_last=False, model="gpt-4-turbo", max_examples=100):
-    """
-    Generate a context-aware French transition (max 5 words)
-    using few-shot prompting from the examples list and OpenAI GPT.
+MODEL_PRICING = {
+    "gpt-3.5-turbo": {"prompt": 0.0005, "completion": 0.0015, "max_examples": 10},
+    "gpt-4": {"prompt": 0.03, "completion": 0.06, "max_examples": 10},
+    "gpt-4-turbo": {"prompt": 0.01, "completion": 0.03, "max_examples": 100}
+}
 
-    Parameters:
-    - para_a: first paragraph
-    - para_b: second paragraph
-    - examples: list of few-shot examples
-    - client: OpenAI client
-    - is_last: bool, if this is the final transition
-    - model: str, model name
-    - max_examples: int, maximum few-shot examples to use
+def main():
+    client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
-    Returns:
-    - transition: str
-    - prompt_tokens: int
-    - completion_tokens: int
-    """
+    VERSION = compute_version_hash([
+        "app.py",
+        "transitions.json",
+        "utils/io.py",
+        "utils/processing.py",
+        "utils/layout.py",
+        "utils/display.py",
+        "utils/version.py",
+        "utils/title_blurb.py",
+        "utils/logger.py"
+    ])
 
-    selected_examples = random.sample(examples, min(max_examples, len(examples)))
+    st.markdown("### 🤖 Sélection du modèle")
+    model = st.selectbox("Choisissez le modèle GPT", list(MODEL_PRICING.keys()), index=2)
+    max_fewshots = st.slider("Nombre d'exemples few-shot utilisés", min_value=1, max_value=MODEL_PRICING[model]["max_examples"], value=MODEL_PRICING[model]["max_examples"])
 
-    closing_transitions = [
-        "Enfin", "Et pour finir", "Pour terminer", "Pour finir", "En guise de conclusion", "En conclusion",
-        "En guise de mot de la fin", "Pour clore cette revue", "Pour conclure cette sélection",
-        "Dernier point à noter", "Pour refermer ce tour d’horizon"
-    ]
+    text_input = layout_title_and_input()
 
-    def is_valid_closing_transition(text):
-        return any(text.strip().lower().startswith(valid.lower()) for valid in closing_transitions)
+    if st.button("✨ Générer les transitions"):
+        if "TRANSITION" not in text_input:
+            st.warning("Aucune balise `TRANSITION` trouvée.")
+            return
 
-    base_prompt = (
-        "Tu es un assistant de presse francophone. "
-        "Ta tâche est d'insérer une transition brève et naturelle (5 mots maximum) "
-        "entre deux paragraphes d'actualité régionale. "
-        "La transition doit être journalistique, fluide, neutre et ne pas répéter les débuts comme 'Par ailleurs', 'Parallèlement', ou 'Sujet'. "
-        "Si tu veux utiliser 'Par ailleurs', préfère des variantes enrichies comme : 'Par ailleurs, on annonce que', ou 'Par ailleurs, sachez que'. "
-        "Évite complètement l’usage de 'En parallèle'. "
-    )
+        examples = load_examples()
+        parts = text_input.split("TRANSITION")
+        pairs = list(zip(parts[:-1], parts[1:]))
 
-    if is_last:
-        base_prompt += (
-            "Cette transition est la toute dernière de l'article. "
-            "Tu dois obligatoirement choisir une transition de fin dans cette liste : "
-            f"[{', '.join(closing_transitions)}]. "
-        )
-    else:
-        base_prompt += (
-            "Cette transition n’est pas la dernière. "
-            f"N’utilise aucune des transitions suivantes : [{', '.join(closing_transitions)}]. "
-        )
+        total_prompt_tokens = 0
+        total_completion_tokens = 0
 
-    messages = [{"role": "system", "content": base_prompt}]
-    for ex in selected_examples:
-        messages.append({"role": "user", "content": ex["input"]})
-        messages.append({"role": "assistant", "content": ex["output"]})
-    messages.append({
-        "role": "user",
-        "content": f"{para_a.strip()}\nTRANSITION\n{para_b.strip()}"
-    })
+        title_blurb, t_prompt, t_completion = generate_title_and_blurb(parts[0], client, model=model)
+        total_prompt_tokens += t_prompt
+        total_completion_tokens += t_completion
 
-    max_attempts = 5
-    for _ in range(max_attempts):
-        response = client.chat.completions.create(
-            model=model,
-            messages=messages,
-            temperature=0.5,
-            max_tokens=20
-        )
+        generated_transitions = []
+        for i, (para_a, para_b) in enumerate(pairs):
+            is_last = (i == len(pairs) - 1)
+            transition, p_tokens, c_tokens = get_transition_from_gpt(
+                para_a, para_b, examples, client, is_last=is_last, model=model, max_examples=max_fewshots
+            )
+            total_prompt_tokens += p_tokens
+            total_completion_tokens += c_tokens
+            generated_transitions.append(transition)
 
-        transition = response.choices[0].message.content.strip()
-        prompt_tokens = response.usage.prompt_tokens
-        completion_tokens = response.usage.completion_tokens
+        rebuilt_text, error = rebuild_article_with_transitions(text_input, generated_transitions)
+        if error:
+            st.error(error)
+        else:
+            if "Titre :" in title_blurb and "Chapeau :" in title_blurb:
+                lines = title_blurb.split("\n")
+                title_line = next((l for l in lines if l.startswith("Titre :")), "")
+                chapo_line = next((l for l in lines if l.startswith("Chapeau :")), "")
+                title_text = title_line.replace("Titre :", "").strip()
+                chapo_text = chapo_line.replace("Chapeau :", "").strip()
 
-        if not is_last or is_valid_closing_transition(transition):
-            return transition, prompt_tokens, completion_tokens
+                st.markdown("### 📜 Titre")
+                st.markdown(f"**{title_text}**")
+                st.markdown("&nbsp;\n&nbsp;\n&nbsp;", unsafe_allow_html=True)
 
-    return random.choice(closing_transitions) + ",", 0, 0
+                st.markdown("### ✏️ Chapeau")
+                st.markdown(chapo_text)
+                st.markdown("&nbsp;\n" * 6, unsafe_allow_html=True)
+            else:
+                title_text = "Titre non défini"
+                chapo_text = "Chapeau non défini"
+                st.markdown("### 📜 Titre et chapeau")
+                st.markdown(title_blurb)
+                st.markdown("&nbsp;\n" * 6, unsafe_allow_html=True)
+
+            st.markdown("### 💾 Article reconstruit")
+            show_output(rebuilt_text)
+
+            st.markdown("### 🧩 Transitions générées")
+            for i, t in enumerate(generated_transitions, 1):
+                st.markdown(f"{i}. _{t}_")
+
+            filepath = save_output_to_file(title_text, chapo_text, rebuilt_text, generated_transitions)
+            st.success(f"✅ L'article a été sauvegardé dans `{filepath}`")
+
+            # 💰 Cost estimation
+            pricing = MODEL_PRICING[model]
+            cost = (total_prompt_tokens * pricing["prompt"] + total_completion_tokens * pricing["completion"])
+            st.markdown("### 💰 Coût estimé")
+            st.markdown(f"**{total_prompt_tokens}** tokens prompt + **{total_completion_tokens}** tokens complétion = **${cost:.4f}**")
+
+    show_version(VERSION)
+
+if __name__ == "__main__":
+    main()
