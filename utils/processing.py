@@ -4,22 +4,22 @@ def get_transition_from_gpt(para_a, para_b, examples, client, is_last=False, mod
     """
     Generate a context-aware French transition (max 5 words)
     using few-shot prompting from the examples list and OpenAI GPT.
-
-    Parameters:
-    - para_a: str, first paragraph
-    - para_b: str, second paragraph
-    - examples: list of dicts with 'input' and 'output'
-    - client: OpenAI client
-    - is_last: bool, True if this is the last paragraph pair in the article
-    - model: str, OpenAI model name (default 'gpt-4')
-
-    Returns:
-    - str: generated transition
+    Automatically retries if final transition is invalid.
     """
 
     # Select up to 3 random examples
     selected_examples = random.sample(examples, min(3, len(examples)))
 
+    closing_transitions = [
+        "Enfin", "Et pour finir", "Pour terminer", "Pour finir", "En guise de conclusion", "En conclusion",
+        "En guise de mot de la fin", "Pour clore cette revue", "Pour conclure cette sélection",
+        "Dernier point à noter", "Pour refermer ce tour d’horizon"
+    ]
+
+    def is_valid_closing_transition(text):
+        return any(text.strip().startswith(valid) for valid in closing_transitions)
+
+    # Construct base system prompt
     base_prompt = (
         "Tu es un assistant de presse francophone. "
         "Ta tâche est d'insérer une transition brève et naturelle (5 mots maximum) "
@@ -29,42 +29,44 @@ def get_transition_from_gpt(para_a, para_b, examples, client, is_last=False, mod
         "Évite complètement l’usage de 'En parallèle'. "
     )
 
-    closing_transitions = (
-        "Enfin, Et pour finir, Pour terminer, Pour finir, En guise de conclusion, En conclusion, "
-        "En guise de mot de la fin, Pour clore cette revue, Pour conclure cette sélection, "
-        "Dernier point à noter, Pour refermer ce tour d’horizon"
-    )
-
     if is_last:
         base_prompt += (
             "Cette transition est la toute dernière de l'article. "
             "Tu dois obligatoirement choisir une transition de fin dans cette liste : "
-            f"[{closing_transitions}]. "
+            f"[{', '.join(closing_transitions)}]. "
         )
     else:
         base_prompt += (
             "Cette transition n’est pas la dernière. "
-            f"N’utilise aucune des transitions suivantes : [{closing_transitions}]. "
+            f"N’utilise aucune des transitions suivantes : [{', '.join(closing_transitions)}]. "
         )
 
-    # Build chat messages
-    messages = [{"role": "system", "content": base_prompt}]
+    # Build static parts of the message history
+    message_base = [{"role": "system", "content": base_prompt}]
     for ex in selected_examples:
-        messages.append({"role": "user", "content": ex["input"]})
-        messages.append({"role": "assistant", "content": ex["output"]})
+        message_base.append({"role": "user", "content": ex["input"]})
+        message_base.append({"role": "assistant", "content": ex["output"]})
 
     # Add actual paragraph pair
-    messages.append({
+    message_base.append({
         "role": "user",
         "content": f"{para_a.strip()}\nTRANSITION\n{para_b.strip()}"
     })
 
-    # Query OpenAI
-    response = client.chat.completions.create(
-        model=model,
-        messages=messages,
-        temperature=0.5,
-        max_tokens=20
-    )
+    # Loop until valid (for final transition only)
+    max_attempts = 5
+    for attempt in range(max_attempts):
+        response = client.chat.completions.create(
+            model=model,
+            messages=message_base,
+            temperature=0.5,
+            max_tokens=20
+        )
 
-    return response.choices[0].message.content.strip()
+        transition = response.choices[0].message.content.strip()
+
+        if not is_last or is_valid_closing_transition(transition):
+            return transition
+
+    # Fallback if all attempts fail
+    return f"[Transition finale non conforme: {transition}]"
