@@ -1,14 +1,15 @@
 import random
-import streamlit as st
 
-def get_transition_from_gpt(para_a, para_b, examples, client, is_last=False, model="gpt-4"):
+def get_transition_from_gpt(para_a, para_b, examples, client, is_last=False, model="gpt-4-turbo"):
     """
     Generate a context-aware French transition (max 5 words)
     using few-shot prompting from the examples list and OpenAI GPT.
     Silent version: no Streamlit logging output.
     """
 
-    selected_examples = random.sample(examples, min(3, len(examples)))
+    # ✅ Dynamically adjust how many few-shot examples to use
+    max_examples = 100 if model == "gpt-4-turbo" else 10
+    selected_examples = random.sample(examples, min(max_examples, len(examples)))
 
     closing_transitions = [
         "Enfin", "Et pour finir", "Pour terminer", "Pour finir", "En guise de conclusion", "En conclusion",
@@ -62,5 +63,5 @@ def get_transition_from_gpt(para_a, para_b, examples, client, is_last=False, mod
         if not is_last or is_valid_closing_transition(transition):
             return transition
 
-    # Fallback to random valid final transition
+    # Fallback if no valid closing transition after attempts
     return random.choice(closing_transitions) + ","
