@@ -4,7 +4,7 @@ def get_transition_from_gpt(para_a, para_b, examples, client, is_last=False, mod
     """
     Generate a context-aware French transition (max 5 words)
     using few-shot prompting from the examples list and OpenAI GPT.
-    Automatically retries if final transition is invalid.
+    Automatically retries if final transition is invalid, with a random fallback.
     """
 
     # Select up to 3 random examples
@@ -68,5 +68,5 @@ def get_transition_from_gpt(para_a, para_b, examples, client, is_last=False, mod
         if not is_last or is_valid_closing_transition(transition):
             return transition
 
-    # Fallback if all attempts fail
-    return f"[Transition finale non conforme: {transition}]"
+    # Fallback: randomly pick a valid closing transition
+    return random.choice(closing_transitions) + ","
