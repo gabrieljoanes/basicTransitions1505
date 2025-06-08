@@ -27,7 +27,15 @@ def main():
 
     text_input = layout_title_and_input()
 
+    # ✅ Slider to control few-shot examples
+    max_fewshots = st.slider(
+        "🔧 Nombre max d'exemples few-shots utilisés par transition",
+        min_value=1, max_value=100, value=50, step=1,
+        help="Réduisez ce nombre pour limiter le coût et la latence."
+    )
+
     if st.button("✨ Générer les transitions"):
+        
         if "TRANSITION" not in text_input:
             st.warning("Aucune balise `TRANSITION` trouvée.")
             return
@@ -47,7 +55,8 @@ def main():
         for i, (para_a, para_b) in enumerate(pairs):
             is_last = (i == len(pairs) - 1)
             transition, p_tokens, c_tokens = get_transition_from_gpt(
-                para_a, para_b, examples, client, is_last=is_last, model=MODEL
+                para_a, para_b, examples, client,
+                is_last=is_last, model=MODEL, max_examples=max_fewshots
             )
             total_prompt_tokens += p_tokens
             total_completion_tokens += c_tokens
