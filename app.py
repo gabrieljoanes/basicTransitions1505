@@ -6,13 +6,13 @@ from utils.layout import rebuild_article_with_transitions
 from utils.display import layout_title_and_input, show_output, show_version
 from utils.version import compute_version_hash
 from utils.title_blurb import generate_title_and_blurb
-from utils.logger import save_output_to_file  # ✅ New import
+from utils.logger import save_output_to_file
 
 def main():
     # ✅ Initialize OpenAI client
     client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
-    # ✅ Compute version hash for traceability
+    # ✅ Compute version hash
     VERSION = compute_version_hash([
         "app.py",
         "transitions.json",
@@ -22,7 +22,7 @@ def main():
         "utils/display.py",
         "utils/version.py",
         "utils/title_blurb.py",
-        "utils/logger.py"  # ✅ Include logger for version hash
+        "utils/logger.py"
     ])
 
     # ✅ Display input UI
@@ -43,18 +43,19 @@ def main():
         # ✅ Generate title and blurb from the first paragraph
         title_blurb = generate_title_and_blurb(parts[0], client)
 
-        # ✅ Generate transitions for each paragraph pair
+        # ✅ Generate transitions with `is_last` logic
         generated_transitions = []
-        for para_a, para_b in pairs:
-            transition = get_transition_from_gpt(para_a, para_b, examples, client)
+        for i, (para_a, para_b) in enumerate(pairs):
+            is_last = (i == len(pairs) - 1)
+            transition = get_transition_from_gpt(para_a, para_b, examples, client, is_last=is_last)
             generated_transitions.append(transition)
 
-        # ✅ Rebuild the full article
+        # ✅ Rebuild full article
         rebuilt_text, error = rebuild_article_with_transitions(text_input, generated_transitions)
         if error:
             st.error(error)
         else:
-            # ✅ Extract and show title & chapeau
+            # ✅ Extract and display title & chapeau
             if "Titre :" in title_blurb and "Chapeau :" in title_blurb:
                 lines = title_blurb.split("\n")
                 title_line = next((l for l in lines if l.startswith("Titre :")), "")
@@ -64,12 +65,10 @@ def main():
 
                 st.markdown("### 📰 Titre")
                 st.markdown(f"**{title_text}**")
-
                 st.markdown("&nbsp;\n&nbsp;\n&nbsp;", unsafe_allow_html=True)
 
                 st.markdown("### ✏️ Chapeau")
                 st.markdown(chapo_text)
-
                 st.markdown("&nbsp;\n" * 6, unsafe_allow_html=True)
             else:
                 title_text = "Titre non défini"
@@ -78,7 +77,7 @@ def main():
                 st.markdown(title_blurb)
                 st.markdown("&nbsp;\n" * 6, unsafe_allow_html=True)
 
-            # ✅ Display full article
+            # ✅ Display article
             st.markdown("### 🧾 Article reconstruit")
             show_output(rebuilt_text)
 
@@ -87,11 +86,11 @@ def main():
             for i, t in enumerate(generated_transitions, 1):
                 st.markdown(f"{i}. _{t}_")
 
-            # ✅ Save output to file
+            # ✅ Save to file
             filepath = save_output_to_file(title_text, chapo_text, rebuilt_text, generated_transitions)
             st.success(f"✅ L'article a été sauvegardé dans `{filepath}`")
 
-    # ✅ Always display version hash
+    # ✅ Always show version hash
     show_version(VERSION)
 
 if __name__ == "__main__":
