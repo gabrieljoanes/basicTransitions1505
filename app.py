@@ -11,10 +11,8 @@ from utils.logger import save_output_to_file
 MODEL = "gpt-4-turbo"
 
 def main():
-    # ✅ Initialize OpenAI client
     client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
-    # ✅ Compute version hash
     VERSION = compute_version_hash([
         "app.py",
         "transitions.json",
@@ -27,7 +25,6 @@ def main():
         "utils/logger.py"
     ])
 
-    # ✅ Display input UI
     text_input = layout_title_and_input()
 
     if st.button("✨ Générer les transitions"):
@@ -39,20 +36,19 @@ def main():
         parts = text_input.split("TRANSITION")
         pairs = list(zip(parts[:-1], parts[1:]))
 
-        # ✅ Token counters
         total_prompt_tokens = 0
         total_completion_tokens = 0
 
-        # ✅ Title & blurb
         title_blurb, t_prompt, t_completion = generate_title_and_blurb(parts[0], client, model=MODEL)
         total_prompt_tokens += t_prompt
         total_completion_tokens += t_completion
 
-        # ✅ Transitions
         generated_transitions = []
         for i, (para_a, para_b) in enumerate(pairs):
             is_last = (i == len(pairs) - 1)
-            transition, p_tokens, c_tokens = get_transition_from_gpt(para_a, para_b, examples, client, is_last=is_last, model=MODEL)
+            transition, p_tokens, c_tokens = get_transition_from_gpt(
+                para_a, para_b, examples, client, is_last=is_last, model=MODEL
+            )
             total_prompt_tokens += p_tokens
             total_completion_tokens += c_tokens
             generated_transitions.append(transition)
@@ -92,7 +88,7 @@ def main():
             filepath = save_output_to_file(title_text, chapo_text, rebuilt_text, generated_transitions)
             st.success(f"✅ L'article a été sauvegardé dans `{filepath}`")
 
-            # ✅ Display estimated cost
+            # 💰 Show estimated cost
             cost = (total_prompt_tokens * 0.01 + total_completion_tokens * 0.03) / 1000
             st.markdown("### 💰 Coût estimé")
             st.markdown(f"**{total_prompt_tokens}** tokens prompt + **{total_completion_tokens}** tokens complétion = **${cost:.4f}**")
