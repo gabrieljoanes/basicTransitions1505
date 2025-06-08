@@ -1,39 +1,50 @@
-# utils/processing.py
-
 import random
 
 def get_transition_from_gpt(para_a, para_b, examples, client, model="gpt-4"):
     """
     Generate a context-aware French transition (max 5 words)
     using few-shot prompting from the examples list and OpenAI GPT.
+
+    Parameters:
+    - para_a: str, first paragraph
+    - para_b: str, second paragraph
+    - examples: list of dicts with 'input' and 'output'
+    - client: OpenAI client
+    - model: str, OpenAI model name (default 'gpt-4')
+
+    Returns:
+    - str: generated transition
     """
-    # Select 3 random examples for few-shot context
+
+    # Select up to 3 random examples
     selected_examples = random.sample(examples, min(3, len(examples)))
 
     system_prompt = (
         "Tu es un assistant de presse francophone. "
         "Ta tâche est d'insérer une transition brève et naturelle (5 mots maximum) "
         "entre deux paragraphes d'actualité régionale. "
-        "La transition doit être journalistique, fluide, neutre et ne pas répéter les débuts comme 'Par ailleurs' ou parallèlement ou sujet."
-        "the final TRANSITION in the article must be a proper concluding transition that clearly signals the end of the article. For that final transition only, choose from the following list of expressions: Enfin, Et pour finir, Pour terminer, Pour finir, En guise de conclusion, En conclusion, En guise de mot de la fin, Pour clore cette revue, Pour conclure cette sélection, Dernier point à noter, Pour refermer ce tour d’horizon. These closing transitions should only appear once and exclusively as the last transition in the article."
-        "if you use par ailleurs, c'est mieux d'étoffer, avec Par ailleurs, on annonce que, Par ailleurs, sachez que,"
-        "avoid the use of en parallèle"
-        
+        "La transition doit être journalistique, fluide, neutre et ne pas répéter les débuts comme 'Par ailleurs' ou 'Parallèlement' ou 'Sujet'. "
+        "La dernière transition dans l’article doit absolument être une transition de clôture. Utilise exclusivement l'une des expressions suivantes : "
+        "Enfin, Et pour finir, Pour terminer, Pour finir, En guise de conclusion, En conclusion, En guise de mot de la fin, Pour clore cette revue, "
+        "Pour conclure cette sélection, Dernier point à noter, Pour refermer ce tour d’horizon. Ces transitions de fin ne doivent apparaître qu’une seule fois, "
+        "et uniquement à la toute fin de l’article. "
+        "Si tu veux utiliser 'Par ailleurs', préfère des variantes enrichies comme : 'Par ailleurs, on annonce que', ou 'Par ailleurs, sachez que'. "
+        "Évite complètement l’usage de 'En parallèle'."
     )
 
-    # Prepare messages for OpenAI chat completion
+    # Build the chat messages
     messages = [{"role": "system", "content": system_prompt}]
     for ex in selected_examples:
         messages.append({"role": "user", "content": ex["input"]})
-        messages.append({"role": "assistant", "content": ex["transition"]})
+        messages.append({"role": "assistant", "content": ex["output"]})
 
-    # Add the real paragraph pair
+    # Add actual paragraph pair
     messages.append({
         "role": "user",
         "content": f"{para_a.strip()}\nTRANSITION\n{para_b.strip()}"
     })
 
-    # Generate with OpenAI client
+    # Query OpenAI
     response = client.chat.completions.create(
         model=model,
         messages=messages,
