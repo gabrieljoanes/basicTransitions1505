@@ -8,7 +8,11 @@ from utils.version import compute_version_hash
 from utils.title_blurb import generate_title_and_blurb
 from utils.logger import save_output_to_file
 
-MODEL = "gpt-4-turbo"
+MODEL_PRICING = {
+    "gpt-3.5-turbo": {"prompt": 0.0005, "completion": 0.0015, "max_examples": 10},
+    "gpt-4": {"prompt": 0.03, "completion": 0.06, "max_examples": 10},
+    "gpt-4-turbo": {"prompt": 0.01, "completion": 0.03, "max_examples": 100}
+}
 
 def main():
     client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
@@ -25,17 +29,13 @@ def main():
         "utils/logger.py"
     ])
 
+    st.markdown("### 🤖 Sélection du modèle")
+    model = st.selectbox("Choisissez le modèle GPT", list(MODEL_PRICING.keys()), index=2)
+    max_fewshots = st.slider("Nombre d'exemples few-shot utilisés", min_value=1, max_value=MODEL_PRICING[model]["max_examples"], value=MODEL_PRICING[model]["max_examples"])
+
     text_input = layout_title_and_input()
 
-    # ✅ Slider to control few-shot examples
-    max_fewshots = st.slider(
-        "🔧 Nombre max d'exemples few-shots utilisés par transition",
-        min_value=1, max_value=100, value=50, step=1,
-        help="Réduisez ce nombre pour limiter le coût et la latence."
-    )
-
     if st.button("✨ Générer les transitions"):
-        
         if "TRANSITION" not in text_input:
             st.warning("Aucune balise `TRANSITION` trouvée.")
             return
@@ -47,7 +47,7 @@ def main():
         total_prompt_tokens = 0
         total_completion_tokens = 0
 
-        title_blurb, t_prompt, t_completion = generate_title_and_blurb(parts[0], client, model=MODEL)
+        title_blurb, t_prompt, t_completion = generate_title_and_blurb(parts[0], client, model=model)
         total_prompt_tokens += t_prompt
         total_completion_tokens += t_completion
 
@@ -55,8 +55,7 @@ def main():
         for i, (para_a, para_b) in enumerate(pairs):
             is_last = (i == len(pairs) - 1)
             transition, p_tokens, c_tokens = get_transition_from_gpt(
-                para_a, para_b, examples, client,
-                is_last=is_last, model=MODEL, max_examples=max_fewshots
+                para_a, para_b, examples, client, is_last=is_last, model=model, max_examples=max_fewshots
             )
             total_prompt_tokens += p_tokens
             total_completion_tokens += c_tokens
@@ -97,8 +96,9 @@ def main():
             filepath = save_output_to_file(title_text, chapo_text, rebuilt_text, generated_transitions)
             st.success(f"✅ L'article a été sauvegardé dans `{filepath}`")
 
-            # 💰 Show estimated cost
-            cost = (total_prompt_tokens * 0.01 + total_completion_tokens * 0.03) / 1000
+            # 💰 Cost estimation
+            pricing = MODEL_PRICING[model]
+            cost = (total_prompt_tokens * pricing["prompt"] + total_completion_tokens * pricing["completion"])
             st.markdown("### 💰 Coût estimé")
             st.markdown(f"**{total_prompt_tokens}** tokens prompt + **{total_completion_tokens}** tokens complétion = **${cost:.4f}**")
 
