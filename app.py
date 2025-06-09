@@ -106,6 +106,15 @@ def main():
                 st.markdown(f"{i}. _{t}_")
 
             filepath = save_output_to_file(title_text, chapo_text, rebuilt_text, generated_transitions)
+            if filepath:
+                try:
+                    # import streamlit as st
+                    gdrive_folder_id = st.secrets.get("gdrive_folder_id")
+                    if gdrive_folder_id:
+                        gdrive_url = f"https://drive.google.com/drive/folders/{gdrive_folder_id}"
+                        st.markdown(f"📁 [Voir le fichier sur Google Drive]({gdrive_url})")
+                except Exception as e:
+                    logger.error(f"Failed to generate Google Drive link: {str(e)}")
             st.success(f"✅ L'article a été sauvegardé dans `{filepath}`")
 
             # 💰 Show estimated cost
